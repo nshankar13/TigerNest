@@ -8,7 +8,7 @@ import json
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://localhost/delivery"
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://localhost/tigernest"
 
 
 db = SQLAlchemy(app)
@@ -60,18 +60,75 @@ class Event(db.Model):
 	event_id = db.Column(db.Integer, primary_key = True)
 	name = db.Column(db.Unicode, unique = False)
 	start_date = db.Column(db.Unicode, unique = False)
+	start_time = db.Column(db.Unicode, unique = False)
 	end_date = db.Column(db.Unicode, unique = False)
+	end_time = db.Column(db.Unicode, unique = False)
+	description = db.Column(db.Unicode, unique = False)
 	location = db.Column(db.Unicode, unique = False)
 	time = db.Column(db.Unicode, unique = False)
 	expected_number_visitors = db.Column(db.Integer, unique = False)
 	number_of_hosts = db.Column(db.Integer, unique = False)
 	hosts = db.Column(db.JSON, unique = False)
+	hosting_organization = db.Column(db.Unicode, unique=False)
+
+	def __init__(self, name, start_date, end_date, location, time, expected_number_visitors, number_of_hosts, hosts, start_time, end_time, description, hosting_organization):
+		self.name = name
+		self.start_date = start_date
+		self.end_date = end_date
+		self.location = location
+		self.time = time
+		self.expected_number_visitors = expected_number_visitors
+		self.number_of_hosts = number_of_hosts
+		self.hosts = hosts
+		self.start_time = start_time
+		self.end_time = end_time
+		self.description = description
+		self.hosting_organization = hosting_organization
+
+class EventSchema(ma.Schema):
+	class Meta:
+		fields = ('event_id', 'name', 'start_date', 'end_date', 'location', 'time', 'expected_number_visitors', 'number_of_hosts', 'hosts', 'start_time', 'end_time', 'description', 'hosting_organization')
+
+event_schema = EventSchema()
+events_schema = EventSchema(many = True)
 
 @app.route("/event", methods=["POST"])
 def event_add():
 	name = request.json['name']
 	start_date = request.json['start_date']
 	end_date = request.json['end_date']
+	location = request.json['location']
+	time = request.json['time']
+	expected_number_visitors = request.json['expected_number_visitors']
+	number_of_hosts = request.json['number_of_hosts']
+	hosts = request.json['hosts']
+	start_time = request.json['start_time']
+	end_time = request.json['end_time']
+	description = request.json['description']
+	hosting_organization = request.json['hosting_organization']
+
+	new_event = Event(name, start_date, end_date, location, time, expected_number_visitors, number_of_hosts, hosts, start_time, end_time, description, hosting_organization)
+	db.session.add(new_event)
+	db.session.commit()
+	return event_schema.jsonify(new_event)
+
+@app.route("/event/<event_id>", methods=["GET"])
+def event_get(event_id):
+	event = Event.query.get(event_id)
+	return event_schema.jsonify(event)
+
+@app.route("/event/<event_id>", methods=["POST"])
+def event_add_host(event_id):
+	event = Event.query.get(event_id)
+	event.number_of_hosts = event.number_of_hosts + 1
+	return event_schema.jsonify(event)
+
+@app.route("/event/sort_date", methods=["GET"])
+def event_get_all():
+	events = Event.query
+	result = events.order_by(Event.start_date).all()
+	return events_schema.jsonify(result)
+
 
 #------------------------------------------------------------------------------------------
 class Host(db.Model):
@@ -85,6 +142,50 @@ class Host(db.Model):
 	gender = db.Column(db.Unicode, unique = False)
 	same_gender = db.Column(db.Boolean, unique = False)
 	expandable = db.Column(db.Boolean, unique = False)
+	additional_visitors = db.Column(db.Integer, unique = False)
+
+	def __init__(self, netid, name, email, campus_organizations, hosting_address, max_visitors, gender, same_gender, expandable, additional_visitors):
+		self.netid = netid
+		self.name = name
+		self.email = email
+		self.campus_organizations = campus_organizations
+		self.hosting_address = hosting_address
+		self.max_visitors = max_visitors
+		self.gender = gender
+		self.same_gender = same_gender
+		self.expandable = expandable
+		self.additional_visitors = additional_visitors
+
+class HostSchema(ma.Schema):
+	class Meta:
+		fields = ('host_id', 'netid', 'name', 'email', 'campus_organizations', 'hosting_address', 'max_visitors', 'gender', 'same_gender', 'expandable', 'additional_visitors')
+
+host_schema = HostSchema()
+hosts_schema = HostSchema(many = True)
+
+@app.route("/host", methods=["POST"])
+def host_add():
+	netid = request.json['netid']
+	name = request.json['name']
+	email = request.json['email']
+	campus_organizations = request.json['campus_organizations']
+	hosting_address = request.json['hosting_address']
+	max_visitors = request.json['max_visitors']
+	gender = request.json['gender']
+	same_gender = request.json['same_gender']
+	expandable = request.json['expandable']
+	additional_visitors = request.json['additional_visitors']
+
+	new_host = Host(netid, name, email, campus_organizations, hosting_address, max_visitors, gender, same_gender, expandable, additional_visitors)
+
+	db.session.add(new_host)
+	db.session.commit()
+	return event_schema.jsonify(new_host)
+
+@app.route("/host/<host_id>", methods=["GET"])
+def host_get(host_id):
+	host = Host.query.get(host_id)
+	return host_schema.jsonify(host)
 
 #------------------------------------------------------------------------------------------
 class Visitor(db.Model):
@@ -95,54 +196,39 @@ class Visitor(db.Model):
 	university = db.Column(db.Unicode, unique = False)
 	email = db.Column(db.Unicode, unique = False)
 
-#------------------------------------------------------------------------------------------
-class User(db.Model):
-	user_id = db.Column(db.Integer, primary_key = True)
-	netid = db.Column(db.Unicode, unique = True)
-	name = db.Column(db.Unicode, unique = False)
-	email = db.Column(db.Unicode, unique = False)
-	birthday = db.Column(db.Unicode, unique = False)
-	phone = db.Column(db.Unicode, unique = False)
-	address = db.Column(db.Unicode, unique = False)
-	allergies = db.Column(db.Unicode, unique = False)
-	image = db.Column(db.Unicode, unique = False)
-
-
-	def __init__(self, netid, name, email, birthday, phone, address, allergies, image):
-		self.name = name
+	def __init__(self, gender, name, same_gender, university, email): 
+		self.gender = gender
+		self.name = name 
+		self.same_gender = same_gender
+		self.university = university 
 		self.email = email
-		self.birthday = birthday
-		self.phone = phone
-		self.address = address
-		self.allergies = allergies
-		self.netid = netid
-		self.image = image
 
-class UserSchema(ma.Schema):
+class VisitorSchema(ma.Schema):
 	class Meta:
-		fields = ('user_id', 'netid', 'name', 'email', 'birthday', 'phone', 'address', 'allergies', 'image')
+		fields = ('visitor_id', 'gender', 'name', 'same_gender', 'university', 'email')
 
-user_schema = UserSchema()
-users_schema = UserSchema(many = True)
+visitor_schema = VisitorSchema()
+visitors_schema = VisitorSchema(many = True)
 
-# Endpoint to create new user
-@app.route("/user", methods = ["POST"])
-def user_add():
-	if 'key' not in request.json or request.json['key'] != SECURE_DATABASE_KEY:
-		return jsonify({"error": "You don't have admin priveleges to this endpoint."})
+@app.route("/visitor", methods=["POST"])
+def visitor_add():
+	gender = request.json['gender']
 	name = request.json['name']
-	netid = request.json['netid']
+	same_gender = request.json['same_gender']
+	university = request.json['university']
 	email = request.json['email']
-	birthday = request.json['birthday']
-	phone = request.json['phone']
-	address = request.json['address']
-	allergies = request.json['allergies']
-	image = request.json['image']
 
-	new_user = User(netid, name, email, birthday, phone, address, allergies, image)
-	db.session.add(new_user)
+	new_visitor = Visitor(gender, name, same_gender, university, email)
+	db.session.add(new_visitor)
 	db.session.commit()
-	return user_schema.jsonify(new_user)
+	return event_schema.jsonify(new_visitor)
 
+@app.route("/visitor/<visitor_id>", methods=["GET"])
+def visitor_get(visitor_id):
+	visitor = Visitor.query.get(visitor_id)
+	return visitor_schema.jsonify(host)
+
+db.create_all()
+#---------------------------------------------------------------------------------------------------
 if __name__ == '__main__':
 	app.run(debug=True, host='0.0.0.0', port=os.environ.get("PORT", 5000))
