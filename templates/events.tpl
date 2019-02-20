@@ -2,16 +2,33 @@
 <html>
   <head lang="en">
     <meta charset="UTF-8">
-    <title>Flask React</title>
+    <title>TigerNest</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- styles -->
   </head>
   <body>
     <div class="container">
-      <h1>Flask React</h1>
+      <h1>TigerNest</h1>
       <br>
       <div id="content"></div>
     </div>
+    <style> 
+    body {
+  margin: 20;
+  padding: 10;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+
+  </style>
     <!-- scripts -->
     Event Name: {{event_name}} <br>
     Event Start Date: {{event_start_date}} <br>
@@ -33,7 +50,7 @@
 
       var realPython = React.createClass({
         render: function() {
-          return (<h2>Greetings, from Real Python!</h2>);
+          return (<h2>Welcome to TigerNest</h2>);
         }
       });
 
