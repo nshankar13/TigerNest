@@ -1,35 +1,46 @@
 import React from 'react'
 import Link from 'next/link'
+//import EventList from './eventList'
 
-const links = [
+//import { renderToString } from 'react-dom/server';
+//import StaticRouter from 'react-router-dom/StaticRouter';
+//import EventList from '../components/eventList'
+//import { BrowserRouter as Router, Route, Link, Switch} from 'react-router-dom';
+//import createBrowserHistory from 'history/createBrowserHistory'
+
+/*const links = [
   { href: 'https://github.com/segmentio/create-next-app', label: 'Github' }
 ].map(link => {
   link.key = `nav-link-${link.href}-${link.label}`
   return link
-})
+}) */
+
 
 const Nav = () => (
+  //const history = createMemoryHistory();
+
   <nav>
     <ul>
       <li>
-        <Link prefetch href="/">
+        <Link href="/">
           <a>Home</a>
         </Link>
       </li>
-      <ul>
-        {links.map(({ key, href, label }) => (
-          <li key={key}>
-            <Link href={href}>
-              <a>{label}</a>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <li>
+        <Link href="/eventList">
+          <a>Events</a>
+        </Link>
+      </li>
+      <li>
+        <Link href="/about">
+          <a>About</a>
+        </Link>
+      </li>
     </ul>
-
     <style jsx>{`
       :global(body) {
         margin: 0;
+        background-color: #ffb833;
         font-family: -apple-system, BlinkMacSystemFont, Avenir Next, Avenir,
           Helvetica, sans-serif;
       }
@@ -54,6 +65,20 @@ const Nav = () => (
       }
     `}</style>
   </nav>
+
 )
+/*
+export default Nav 
+
+import React from 'react'
+import Header from './header'
+import Main from './main'
+
+const Nav = () => (
+  <div>
+  <Header />
+  <Main />
+  </div>
+)*/
 
 export default Nav

@@ -1,7 +1,35 @@
+
+
+/*import React from 'react'
+
+import Link from 'next/link'
+import Head from '../components/head'
+//import NavBar from '../components/navBar'
+//import Nav from '../components/nav'
+
+/*function Welcome(props) {
+  return <h1>Hello, {props.name}</h1>;
+}
+
+const element = <Welcome name="Sara" />;
+ReactDOM.render(element, document.getElementById('root'));
+
+import { render } from 'react-dom'
+import { BrowserRouter } from 'react-router-dom'
+import Nav from '../components/nav';
+import ReactDOM from 'react-dom';
+//var document = typeof document === 'undefined' ? '' : document;
+
+
+if (typeof window !== 'undefined') {
+  ReactDOM.render((<Nav />), document.getElementById('root'));
+} */
+
 import React from 'react'
 import Link from 'next/link'
 import Head from '../components/head'
 import Nav from '../components/nav'
+import { BrowserRouter as Router} from 'react-router-dom'
 
 const Home = () => (
   <div>
@@ -9,7 +37,7 @@ const Home = () => (
     <Nav />
 
     <div className="hero">
-      <h1 className="title">Welcome to Next!</h1>
+      <h1 className="title">Welcome to TigerNest!</h1>
       <p className="description">
         To get started, edit <code>pages/index.js</code> and save to reload.
       </p>
@@ -88,4 +116,4 @@ const Home = () => (
   </div>
 )
 
-export default Home
+export default Home 
