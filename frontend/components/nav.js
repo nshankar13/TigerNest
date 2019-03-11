@@ -1,5 +1,9 @@
 import React from 'react'
 import Link from 'next/link'
+import { Navbar } from 'reactstrap';
+
+
+
 //import EventList from './eventList'
 
 //import { renderToString } from 'react-dom/server';
@@ -19,7 +23,7 @@ import Link from 'next/link'
 const Nav = () => (
   //const history = createMemoryHistory();
 
-  <nav>
+  <Navbar color="light" light expand="md">
     <ul>
       <li>
         <Link href="/">
@@ -40,7 +44,8 @@ const Nav = () => (
     <style jsx>{`
       :global(body) {
         margin: 0;
-        background-color: #ffb833;
+        background: url("/static/background.jpg");
+
         font-family: -apple-system, BlinkMacSystemFont, Avenir Next, Avenir,
           Helvetica, sans-serif;
       }
@@ -64,7 +69,7 @@ const Nav = () => (
         font-size: 13px;
       }
     `}</style>
-  </nav>
+  </Navbar>
 
 )
 /*
