@@ -45,6 +45,7 @@ const Nav = () => (
       :global(body) {
         margin: 0;
         background: url("/static/background.jpg");
+        background-size: cover;
 
         font-family: -apple-system, BlinkMacSystemFont, Avenir Next, Avenir,
           Helvetica, sans-serif;
@@ -55,6 +56,8 @@ const Nav = () => (
       ul {
         display: flex;
         justify-content: space-between;
+        margin-top: 0;
+        margin-bottom: 0;
       }
       nav > ul {
         padding: 4px 16px;

@@ -25,12 +25,16 @@ if (typeof window !== 'undefined') {
   ReactDOM.render((<Nav />), document.getElementById('root'));
 } */
 
-import React from 'react'
-import Link from 'next/link'
-import Head from '../components/head'
-import Nav from '../components/nav'
+import React from 'react';
+import Link from 'next/link';
+import Head from '../components/head';
+import Nav from '../components/nav';
+import { GoogleLogin } from 'react-google-login';
 import { BrowserRouter as Router} from 'react-router-dom'
 
+const responseGoogle = (response) => {
+  console.log(response);
+}
 
 const Home = () => (
   <div>
@@ -56,9 +60,20 @@ const Home = () => (
             <p>
               Find a place to stay!
               </p>
+              <GoogleLogin
+    clientId="658977310896-knrl3gka66fldh83dao2rhgbblmd4un9.apps.googleusercontent.com"
+    buttonText="Login"
+    onSuccess={responseGoogle}
+    onFailure={responseGoogle}
+  />  
           </a>
         </Link>
       </div>
+      
+      <p className="description">
+        Organizing an event and need hosts? Click here to login with CAS
+      </p>
+
     </div>
 
     <style jsx>{`
