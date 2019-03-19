@@ -30,6 +30,7 @@ import Link from 'next/link';
 import Head from '../components/head';
 import Nav from '../components/nav';
 import { GoogleLogin } from 'react-google-login';
+import { InputGroup, InputGroupAddon, Input } from 'reactstrap';
 import { BrowserRouter as Router} from 'react-router-dom'
 
 const responseGoogle = (response) => {
@@ -48,12 +49,10 @@ const Home = () => (
       </p>
 
       <div className="row">
-        <Link href="https://github.com/zeit/next.js#getting-started">
           <a className="card">
             <h3>Hosts 🛏️</h3>
             <p>Host a visiting student!</p>
           </a>
-        </Link>
         <Link href="https://open.segment.com/create-next-app">
           <a className="card">
             <h3>Visitors 💼</h3>
@@ -61,13 +60,14 @@ const Home = () => (
               Find a place to stay!
               </p>
               <GoogleLogin
-    clientId="658977310896-knrl3gka66fldh83dao2rhgbblmd4un9.apps.googleusercontent.com"
-    buttonText="Login"
-    onSuccess={responseGoogle}
-    onFailure={responseGoogle}
-  />  
+                clientId="183998616948-ulm4tmpji0ssvns40u5bs4gsvu1ubeff.apps.googleusercontent.com"
+                buttonText="Login"
+                onSuccess={responseGoogle}
+                onFailure={responseGoogle}
+              />  
           </a>
         </Link>
+        
       </div>
       
       <p className="description">
