@@ -1,41 +1,128 @@
-import React from "react";
-import { MDBContainer, MDBRow, MDBCol } from "mdbreact";
+import React from 'react'
+import Link from 'next/link'
+import Head from '../components/head'
+import Nav from '../components/nav'
+import fetch from 'isomorphic-unfetch'
+import { Button, Container, Row, Col, CustomInput, Form, FormFeedback, FormGroup, Label, Input, FormText} from 'reactstrap';
+import PropTypes from 'prop-types'
 
-const eventRegister2 = () => {
-  return (
-    <div>
-    <MDBContainer>
-      <MDBRow>
-        <MDBCol size="4">.col-4</MDBCol>
-        <MDBCol size="4">.col-4</MDBCol>
-        <MDBCol size="4">.col-4</MDBCol>
-      </MDBRow>
+class eventRegister2 extends React.Component {
+  constructor(props, context){
+    super(props, context);
+    this.addUser = this.addUser.bind(this);
+  }
+  async addUser(){
+  //console.log(document.forms["registerForm"]["netid"].value);
 
-      <MDBRow>
-        <MDBCol sm="4">.col-sm-4</MDBCol>
-        <MDBCol sm="4">.col-sm-4</MDBCol>
-        <MDBCol sm="4">.col-sm-4</MDBCol>
-      </MDBRow>
+  let userInfo = {
+    "name": document.forms["registerForm"]["name"].value, 
+    "netid": document.forms["registerForm"]["netid"].value,
+    "email": document.forms["registerForm"]["email"].value, 
+    "campus_organizations": document.forms["registerForm"]["campusorg"].value,
+    "hosting_address": document.forms["registerForm"]["address"].value,
+    "max_visitors": parseInt(document.forms["registerForm"]["maxvisitor"].value),
+    "gender": document.forms["registerForm"]["gender"].value, 
+    "same_gender": true,
+    "expandable": true,
+    "additional_visitors": 1,
+  };
 
-      <MDBRow>
-        <MDBCol md="4">.col-md-4</MDBCol>
-        <MDBCol md="4">.col-md-4</MDBCol>
-        <MDBCol md="4">.col-md-4</MDBCol>
-      </MDBRow>
+  console.log(JSON.stringify(userInfo));
 
-      <MDBRow>
-        <MDBCol lg="4">.col-lg-4</MDBCol>
-        <MDBCol lg="4">.col-lg-4</MDBCol>
-        <MDBCol lg="4">.col-lg-4</MDBCol>
-      </MDBRow>
+  const res = await fetch('http://localhost:5000/host', {
+        method: "POST",
+        headers: {
+            'Accept': 'application/json',
+            "Content-Type": "application/json",
+        }, 
+        body: JSON.stringify(userInfo)
+  });
 
-      <MDBRow>
-        <MDBCol xl="4">.col-xl-4</MDBCol>
-        <MDBCol xl="4">.col-xl-4</MDBCol>
-        <MDBCol xl="4">.col-xl-4</MDBCol>
-      </MDBRow>
-    </MDBContainer>
-    <style jsx>{`
+  
+
+  const content = await res.json();
+  console.log(content);
+}
+  render(){
+    return (
+  <div>
+  <Head title="Event Registration Form" />
+    <Nav />
+    
+    <div className="hero">
+      <center> Sign up to host for an event!</center>
+      <br />
+      <br />
+
+      <Form id="registerForm">
+      <Row>
+      <Col>
+      <center>Name </center>
+      </Col>
+      <Col>
+      <Input type="text" name="name" id="name" />  
+      </Col>
+      </Row>
+      <br />
+      <Row>
+      <Col>
+      <center> Net ID </center>
+      </Col>
+      <Col>
+      <Input type="text" name="netid" id="netid"/>  
+      </Col>
+      </Row>
+      <br />
+      <Row>
+      <Col>
+      <center> Email </center>
+      </Col>
+      <Col>
+      <Input type="text" name="email" id="email"/>  
+      </Col>
+      </Row>
+      <br />
+      <Row>
+      <Col>
+      <center> Campus Organization </center>
+      </Col>
+      <Col>
+      <Input type="text" name="campusorg" id="campusorg"/>  
+      </Col>
+      </Row>
+      <br />
+      <Row>
+      <Col>
+      <center> Hosting Address </center>
+      </Col>
+      <Col>
+      <Input type="text" name="address" id="address"/>  
+      </Col>
+      </Row>
+      <br />
+      <Row>
+      <Col>
+      <center> Max Visitors </center>
+      </Col>
+      <Col>
+      <Input type="text" name="maxvisitor" id="maxvisitor"/>  
+      </Col>
+      </Row>
+      <br />
+      <Row>
+      <Col>
+      <center> Gender </center>
+      </Col>
+      <Col>
+      <Input type="text" name="gender" id="gender"/>  
+      </Col>
+      </Row>
+      <br />
+       <center><Button onClick={this.addUser}> Submit information </Button> </center>
+      </Form>
+
+    </div>
+<style jsx>{`
       .hero {
         width: 100%;
         color: #333;
@@ -53,7 +140,7 @@ const eventRegister2 = () => {
       }
       .row {
         max-width: 880px;
-        margin: 80px auto 40px;
+        margin: 20px auto 20px;
         display: flex;
         flex-direction: row;
         justify-content: space-around;
@@ -81,8 +168,10 @@ const eventRegister2 = () => {
         color: #333;
       }
     `}</style>
-    </div>
-  );
+  </div>)
+
+}
 }
 
-export default eventRegister2;
+
+export default eventRegister2

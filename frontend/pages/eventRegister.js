@@ -33,7 +33,7 @@ class eventRegister extends React.Component {
         method: "POST",
         headers: {
             'Accept': 'application/json',
-            "Content-Type": "application/json",
+            "Content-Type": "application/json"
         }, 
         body: JSON.stringify(userInfo)
   });
@@ -48,74 +48,77 @@ class eventRegister extends React.Component {
   <div>
   <Head title="Event Registration Form" />
     <Nav />
-    
     <div className="hero">
       <center> Sign up to host for an event!</center>
+      <br />
+      <br />
 
-      <form id="registerForm">
-      <div className="row">
-      <div className="column">
-      Name: 
-      </div> 
-      <div className="column"> 
-      <input type="text" name="name" />  
-      </div>
-      </div>
-
-
-     <div className="row">
-     <div className="column">
-      Net ID: 
-      </div>
-
-      <div className="column">
-      <input type="text" name="netid" id="netid" />
-      </div>  
-      </div>
-
-       <div className="row">
-       <div className="column">
-      Email: 
-      </div>
-
-      <div className="column">
-      <input type="text" name="email" id="email" /> 
-      </div>
-      </div>
-
-      <div className="row">
-      <div className="column">
-      Campus Organization: 
-      </div>
-      <div className="column">
-      <input type="text" name="campusorg" id="campusorg" />
-      </div>
-      </div>
-      <div className="row">
-      <div className="column">
-      Hosting Address: 
-      </div>
-
-      <div className="column">
-      <input type="text" name="address" id="address" />
-      </div>
-      </div>
-
-      <div className="row">
-      <div className="column">
-      Max Visitors: 
-      </div>
-
-      <div className="column">
-      <input type="text" name="maxvisitor" id="maxvisitor" />
-      </div>
-      </div>
-      <div className="row">
-      Gender: <input type="text" name="gender" id="gender" />
-      </div>
-
-       <center><button onClick={this.addUser}> Submit information </button> </center>
-      </form>
+      <Form id="registerForm">
+      <Row>
+      <Col>
+      <center>Name </center>
+      </Col>
+      <Col>
+      <Input type="text" name="name" id="name" />  
+      </Col>
+      </Row>
+      <br />
+      <Row>
+      <Col>
+      <center> Net ID </center>
+      </Col>
+      <Col>
+      <Input type="text" name="netid" id="netid"/>  
+      </Col>
+      </Row>
+      <br />
+      <Row>
+      <Col>
+      <center> Email </center>
+      </Col>
+      <Col>
+      <Input type="text" name="email" id="email"/>  
+      </Col>
+      </Row>
+      <br />
+      <Row>
+      <Col>
+      <center> Campus Organization </center>
+      </Col>
+      <Col>
+      <Input type="text" name="campusorg" id="campusorg"/>  
+      </Col>
+      </Row>
+      <br />
+      <Row>
+      <Col>
+      <center> Hosting Address </center>
+      </Col>
+      <Col>
+      <Input type="text" name="address" id="address"/>  
+      </Col>
+      </Row>
+      <br />
+      <Row>
+      <Col>
+      <center> Max Visitors </center>
+      </Col>
+      <Col>
+      <Input type="text" name="maxvisitor" id="maxvisitor"/>  
+      </Col>
+      </Row>
+      <br />
+      <Row>
+      <Col>
+      <center> Gender </center>
+      </Col>
+      <Col>
+      <Input type="text" name="gender" id="gender"/>  
+      </Col>
+      </Row>
+      <br />
+       <center><Button onClick={this.addUser}> Submit information </Button> </center>
+      </Form>
 
     </div>
 <style jsx>{`
