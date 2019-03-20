@@ -36,6 +36,11 @@ const Nav = () => (
         </Link>
       </li>
       <li>
+        <Link href="/eventRegister">
+          <a>Register to be a Host</a>
+        </Link>
+      </li>
+      <li>
         <Link href="/about">
           <a>About</a>
         </Link>
