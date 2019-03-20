@@ -33,7 +33,7 @@ const Nav = () => (
       </li>
       <li>
         <Link href="/eventRegister">
-          <a>Register</a>
+          <a>Register to be a Host</a>
         </Link>
       </li>
       <li>

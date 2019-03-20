@@ -8,9 +8,12 @@
     "cors": "^2.8.5",
     "express": "^4.16.4",
     "isomorphic-unfetch": "^3.0.0",
+    "mdbreact": "^4.11.1",
     "next": "8.0.3",
+    "prop-types": "^15.7.2",
     "react": "16.8.3",
     "react-dom": "^16.8.3",
-    "react-router-dom": "^4.3.1"
+    "react-router-dom": "^4.3.1",
+    "reactstrap": "^7.1.0"
   }
 }

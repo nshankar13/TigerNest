@@ -3,8 +3,8 @@ import Link from 'next/link'
 import Head from '../components/head'
 import Nav from '../components/nav'
 import fetch from 'isomorphic-unfetch'
-
-
+import { Button, Container, Row, Col, CustomInput, Form, FormFeedback, FormGroup, Label, Input, FormText} from 'reactstrap';
+import PropTypes from 'prop-types'
 
 class eventRegister extends React.Component {
   constructor(props, context){
@@ -38,7 +38,7 @@ class eventRegister extends React.Component {
         body: JSON.stringify(userInfo)
   });
 
-  console.log("hello");
+  
 
   const content = await res.json();
   console.log(content);
@@ -53,30 +53,68 @@ class eventRegister extends React.Component {
       <center> Sign up to host for an event!</center>
 
       <form id="registerForm">
-        Name: <input type="text" name="name" />
-        <br />
-        
-        Net ID: <input type="text" name="netid" id="netid" />
-        <br />
-        
-        Email: <input type="text" name="email" id="email" />
-        <br />
-        
-        Campus Organization: <input type="text" name="campusorg" id="campusorg" />
-        <br />
-        
-        Hosting Address: <input type="text" name="address" id="address" />
-        <br />
-        
-        Max Visitors: <input type="text" name="maxvisitor" id="maxvisitor" />
-        <br />
-        
-        Gender: <input type="text" name="gender" id="gender" />
-        <br />
-        
+      <div className="row">
+      <div className="column">
+      Name: 
+      </div> 
+      <div className="column"> 
+      <input type="text" name="name" />  
+      </div>
+      </div>
 
-       <button onClick={this.addUser}> Submit information </button>
 
+     <div className="row">
+     <div className="column">
+      Net ID: 
+      </div>
+
+      <div className="column">
+      <input type="text" name="netid" id="netid" />
+      </div>  
+      </div>
+
+       <div className="row">
+       <div className="column">
+      Email: 
+      </div>
+
+      <div className="column">
+      <input type="text" name="email" id="email" /> 
+      </div>
+      </div>
+
+      <div className="row">
+      <div className="column">
+      Campus Organization: 
+      </div>
+      <div className="column">
+      <input type="text" name="campusorg" id="campusorg" />
+      </div>
+      </div>
+      <div className="row">
+      <div className="column">
+      Hosting Address: 
+      </div>
+
+      <div className="column">
+      <input type="text" name="address" id="address" />
+      </div>
+      </div>
+
+      <div className="row">
+      <div className="column">
+      Max Visitors: 
+      </div>
+
+      <div className="column">
+      <input type="text" name="maxvisitor" id="maxvisitor" />
+      </div>
+      </div>
+      <div className="row">
+      Gender: <input type="text" name="gender" id="gender" />
+      </div>
+
+       <center><button onClick={this.addUser}> Submit information </button> </center>
       </form>
 
     </div>
@@ -98,7 +136,7 @@ class eventRegister extends React.Component {
       }
       .row {
         max-width: 880px;
-        margin: 80px auto 40px;
+        margin: 20px auto 20px;
         display: flex;
         flex-direction: row;
         justify-content: space-around;
