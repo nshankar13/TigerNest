@@ -10,8 +10,8 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
 CORS(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:p@localhost:5432/tigernest"
-#app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://localhost/tigernest"
+#app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:p@localhost:5432/tigernest"
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://localhost/tigernest"
 
 
 db = SQLAlchemy(app)
