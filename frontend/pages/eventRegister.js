@@ -41,7 +41,7 @@ class eventRegister extends React.Component {
   
 
   const content = await res.json();
-  console.log(content);
+  //console.log(content);
 }
   render(){
     return (

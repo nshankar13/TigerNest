@@ -36,6 +36,11 @@ const Nav = () => (
         </Link>
       </li>
       <li>
+        <Link href="/myEvents">
+          <a>My Events</a>
+        </Link>
+      </li>
+      <li>
         <Link href="/eventRegister">
           <a>Register to be a Host</a>
         </Link>
@@ -43,6 +48,11 @@ const Nav = () => (
       <li>
         <Link href="/about">
           <a>About</a>
+        </Link>
+      </li>
+      <li>
+        <Link href="/logout">
+          <a>Logout</a>
         </Link>
       </li>
     </ul>

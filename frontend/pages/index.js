@@ -47,12 +47,21 @@ const Home = () => (
       <p className="description">
         Matching Princeton students with visiting students.
       </p>
-
+      <br />
+      <center> I am a.... </center>
       <div className="row">
+      <Link href="/eventOrganizerLogin">
+          <a className="card">
+            <h3>Event Organizer</h3>
+            <p> Register events that hosts and visitors sign up for!</p>
+          </a>
+      </Link>
+      <Link href="/hostLogin">
           <a className="card">
             <h3>Hosts 🛏️</h3>
             <p>Host a visiting student!</p>
           </a>
+      </Link>
         <Link href="https://open.segment.com/create-next-app">
           <a className="card">
             <h3>Visitors 💼</h3>
