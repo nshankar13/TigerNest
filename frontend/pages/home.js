@@ -38,64 +38,17 @@ const responseGoogle = (response) => {
   console.log(response);
 }
 
-const Home = () => (
+const Homepage = () => (
   <div>
     <Head title="Home" />
+    <Nav />
  
 
     <div className="hero">
-      <h1 className="title">Welcome to TigerNest!</h1>
-      <p className="description">
-        Matching Princeton students with visiting students.
-      </p>
-      <br />
-      <center> I am a.... </center>
-      <div className="row">
+    <br />
+    <br />
+    <center> TigerNest is a web application that matches Princeton hosts with incoming visitors for overnight events. Here are some guidelines for navigating our site as an event organizer. </center>  
 
-      <Card>
-        <h5> Event Organizer </h5>
-        <p> Register events that <br /> and visitors sign up for!</p>
-          <center> <Link href="/eventList">
-            <a className="button">
-              Login
-            </a>
-          </Link> </center>
-          <center> <Link href="/eventOrganizerRegister">
-            <a className="button">
-              Sign up
-            </a>
-          </Link> </center>
-
-      </Card>
-
-      {/* <Link href="/eventOrganizerLogin">
-          <a className="card">
-            <h3>Event Organizer</h3>
-            <p> Register events that hosts and visitors sign up for!</p>
-          </a>
-      </Link> */}
-      <Link href="/hostLogin">
-          <a className="card">
-            <h3>Hosts 🛏️</h3>
-            <p>Host a visiting student!</p>
-          </a>
-      </Link>
-        <Link href="https://open.segment.com/create-next-app">
-          <a className="card">
-            <h3>Visitors 💼</h3>
-            <p>
-              Find a place to stay!
-              </p>
-              <GoogleLogin
-                clientId="183998616948-ulm4tmpji0ssvns40u5bs4gsvu1ubeff.apps.googleusercontent.com"
-                buttonText="Login"
-                onSuccess={responseGoogle}
-                onFailure={responseGoogle}
-              />  
-          </a>
-        </Link>
-
-    </div>
     </div>
 
     <style jsx>{`
@@ -155,4 +108,4 @@ const Home = () => (
   </div>
 )
 
-export default Home 
+export default Homepage

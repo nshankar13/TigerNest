@@ -45,15 +45,28 @@ app.prepare()
 
           // Redirect the user to the CAS server
           res.redirect(casURL + 'login?service=' + "http://localhost:3000/verify")
+
         })
         server.get('/logout', function (req, res) {
+
           req.session = null
           res.redirect(casURL + 'logout?url=http://localhost:3000')
-        })
 
-        server.get('/eventList', function (req, res) {
+        })
+        /*server.get('/eventOrganizer/*', function (req, res) {
           // Save the user's redirection destination to a cookie
           if (req.session.cas) {
+            return handle(req, res);
+          }
+          // Redirect the user to the CAS server
+          res.redirect("/login?redirect=/eventOrganizer/*")
+        }) */
+
+        /*server.get('/eventList', function (req, res) {
+          // Save the user's redirection destination to a cookie
+          if (req.session.cas) {
+            //console.log("hello there")
+
             return handle(req, res);
           }
           // Redirect the user to the CAS server
@@ -64,16 +77,15 @@ app.prepare()
           if (req.session.cas) {
             return handle(req, res);
           }
-          // Redirect the user to the CAS server
-          res.redirect("/login?redirect=/eventList")
-        })
+          res.redirect("/login?redirect=/myEvents")
+        }) */
         server.get('/verify', function(req, res) {
           // Check if the user has a redirection destination
           let redirectDestination = req.session.redirect || '/'
 
           // If the user already has a valid CAS session then send them to their destination
           if (req.session.cas) {
-            let netidTemp = req.session.cas.netid + "";
+            /*let netidTemp = req.session.cas.netid + "";
             async function netidVerify(){
                 const res = await fetch('http://localhost:5000/event_organizer/netidVerify/' + netidTemp, {
                 method: "GET",
@@ -86,7 +98,8 @@ app.prepare()
                 return data
             }
             data = netidVerify()
-            if (data !== "") res.redirect(redirectDestination)
+            if (data !== "") */
+            res.redirect(redirectDestination)
             return
           }
 
@@ -107,6 +120,20 @@ app.prepare()
             }
 
             // Save the user's session data
+            req.session.cas = JSON.stringify({
+                  error: err,
+                  status: status,
+                  netid: netid,
+                  ticket: ticket,
+                  session: req.session
+                }); 
+
+            //req.session.netid = String(cas.s)
+            //req.session.status = String(status)
+            res.redirect(redirectDestination)
+        })
+         }) 
+            /*
             async function netidVerify2(){
                 const res = await fetch('http://localhost:5000/event_organizer/netidVerify/' + netid, {
                 method: "GET",
@@ -125,23 +152,69 @@ app.prepare()
                   status: status,
                   netid: netid
                 }
-                res.redirect(redirectDestination)
-            }
-          })
-        })
+                res.redirect(redirectDestination) 
+            } 
+          }) 
+        })*/
 
         server.get('/netid', function (req, res) {
-            if (req.session.cas){
-                return res.json(req.session.cas.netid);
-            }
-            else
-            {
-                return ""
-            }
-        })
-        server.get('*', (req, res) => {
+          // Save the user's redirection destination to a cookie
+          if (req.session.cas) {
+            //console.log("hello there")
+            //let netidResult = JSON.stringify({netid: req.session.cas['netid']});
+
+            return res.json(req.session.cas)
+          }
+          // Redirect the user to the CAS server
+          res.redirect("/login?redirect=/eventList")
+        })        
+        server.get('/', function (req, res) {
             return handle(req, res);
         })
+        server.get('/static/background.img', 
+            function (req, res) {
+                return handle(req, res);
+            }
+        )
+        server.get('*', function (req, res) {
+            if (req.session.cas){
+                return handle(req, res);
+            }
+            res.redirect("/login?redirect=/eventList")            
+        }) 
+        /*server.get('/static/background.img', 
+            function (req, res) {
+                return handle(req, res);
+            }
+        )*/
+        /*server.get('/static/background.jpg', 
+            function (req, res) {
+                return handle(req, res);
+            }
+        )*/
+
+
+        /*server.get('/_next/static/development/*',
+            function (req, res) {
+                return handle(req, res);
+            }
+        )*/
+        /*server.get('*', 
+            function (req, res) {
+                return handle(req, res);
+            }
+        ) */
+        /*server.get('*', (req, res) => {
+                server.get('/eventList', function (req, res) {
+              // Save the user's redirection destination to a cookie
+              if (req.session.cas) {
+                return handle(req, res);
+              }
+              // Redirect the user to the CAS server
+              res.redirect("/login?redirect=/eventList")
+            })
+            //return handle(req, res);
+        })*/
         server.set('views', '/views');
         server.set('view engine', 'js');
         server.engine('js', require('express-react-views').createEngine()); 

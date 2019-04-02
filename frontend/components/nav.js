@@ -26,13 +26,13 @@ const Nav = () => (
   <Navbar color="light" light expand="md">
     <ul>
       <li>
-        <Link href="/">
+        <Link href="/home">
           <a>Home</a>
         </Link>
       </li>
       <li>
         <Link href="/eventList">
-          <a>Events</a>
+          <a>All Events</a>
         </Link>
       </li>
       <li>
@@ -41,13 +41,8 @@ const Nav = () => (
         </Link>
       </li>
       <li>
-        <Link href="/eventRegister">
-          <a>Register to be a Host</a>
-        </Link>
-      </li>
-      <li>
         <Link href="/about">
-          <a>About</a>
+          <a>My Account</a>
         </Link>
       </li>
       <li>

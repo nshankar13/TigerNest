@@ -14,11 +14,25 @@ class eventList extends React.Component {
     super(props, context);
     this.state = {
       modal: false,
+      editModal: false,
       visitorEmails: []
     };
     this.toggle = this.toggle.bind(this);
     this.addEvent = this.addEvent.bind(this);
+    this.editEvent = this.editEvent.bind(this);
     this.handleFiles = this.handleFiles.bind(this);
+    this.editModalToggle = this.editModalToggle(this);
+  }
+  async editEvent(){
+
+
+  }
+  editModalToggle(event_id) {
+    this.setState(prevState => ({
+      editModal: !prevState.editModal
+    }));
+    if (!this.state.editModal)
+      this.setState(state => ({ visitorEmails: ""}));
   }
   async addEvent(){
     //let name = document.forms["eventCreateForm"]["eventname"].value;
@@ -73,7 +87,8 @@ class eventList extends React.Component {
     this.setState(prevState => ({
       modal: !prevState.modal
     }));
-    this.setState(state => ({ visitorEmails: ""}));
+    if (!this.state.modal)
+      this.setState(state => ({ visitorEmails: ""}));
   }
   static async getInitialProps(){
         const res = await fetch('http://localhost:5000/event/sort_date', {
@@ -146,11 +161,11 @@ class eventList extends React.Component {
   render(props){ 
     return(
   <div>
-  <Head title="Events List" />
+  <Head title="My Events" />
     <Nav />
     
     <div className="hero">
-      <center> <h2> All Events </h2> </center>
+      <center> <h2> My Events </h2> </center>
       <Button color="danger" onClick={this.toggle}> Enlist a new event </Button>
       <br />
 
@@ -223,6 +238,76 @@ class eventList extends React.Component {
             <Button color="secondary" onClick={this.toggle}>Cancel</Button>
           </ModalFooter>
       </Modal>
+
+      <Modal isOpen={this.state.editModal} toggle={this.editModalToggle} className={this.props.className}>
+          <ModalHeader toggle={this.editModalToggle}> Create an Event</ModalHeader>
+          <ModalBody>
+          <Form id="eventCreateForm">
+          <Row> <Col> Event Name: </Col> <Col> <Input type="text" name="eventname" id="eventname"/> </Col> </Row>
+          <br />
+          <Row>
+          <Col>
+          Start Date
+          </Col>
+          <Col>
+          <Input type="text" name="startdate" id="startdate"/>  
+          </Col>
+          <Col>
+          Start Time
+          </Col>
+          <Col>
+          <Input type="text" name="starttime" id="starttime"/>  
+          </Col>
+          </Row>
+          <br />
+          <Row>
+          <Col>
+         End Date 
+          </Col>
+          <Col>
+          <Input type="text" name="enddate" id="enddate"/>
+          </Col>
+          <Col>
+          End Time
+          </Col>
+          <Col>
+          <Input type="text" name="endtime" id="endtime"/>
+          </Col>
+          </Row>
+          <br />
+          <Row>
+          <Col>
+          Expected Attendance
+          </Col>
+          <Col>
+          <Input type="text" name="expectednum" id="expectednum"/>
+          </Col>
+          <Col> Location </Col>
+          <Col> <Input type="text" name="location" id="location"/> </Col>
+          </Row>
+          <br />
+          <Row>
+          <Col>
+          Hosting Organization
+          </Col>
+          <Col>
+          <Input type="text" name="hostingorg" id="hostingorg"/>
+          </Col>
+          </Row>
+          <br />
+          Please add a brief description of the event: <Input type="textarea" name="description" id="description" /> 
+          <br />   
+          </Form>  
+          <ReactFileReader handleFiles={this.handleFiles} fileTypes={'.csv'}>
+              <button id="visitorList" name="visitorList" className='btn'>Upload</button>
+          </ReactFileReader>
+          
+          </ModalBody>
+          <ModalFooter>
+            <Button color="primary" onClick={this.editEvent}>Create Event</Button>{' '}
+            <Button color="secondary" onClick={this.editModalToggle}>Cancel</Button>
+          </ModalFooter>
+      </Modal>
       <CardDeck>
 
         {this.props.events.map((value, index) => {
@@ -236,7 +321,10 @@ class eventList extends React.Component {
                  <p key="4"> End Date: {jsonVal['end_date']} </p>
                  <p key="5"> End Time: {jsonVal['end_time']} </p>  
                  <p key="6"> Location: {jsonVal['location']} </p> 
-                 </Card> </div>
+                 
+                 <Button key="8" onClick={() => this.editModalToggle(jsonVal['event_id'])}> Edit Event </Button> 
+                 </Card> 
+                 </div>
   
         })}
 

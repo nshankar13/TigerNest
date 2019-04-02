@@ -147,14 +147,14 @@ def event_get(event_id):
 	event = Event.query.get(event_id)
 	return event_schema.jsonify(event)
 
-@app.route("/event/<event_id>", methods=["POST"])
+@app.route("/event/addHost/<event_id>", methods=["POST"])
 def event_add_host(event_id):
 	event = Event.query.get(event_id)
 	event.number_of_hosts = event.number_of_hosts + 1
 	return event_schema.jsonify(event)
 
 @app.route("/event/sort_date", methods=["GET"])
-def event_get_all():
+def event_sort_date():
 	events = Event.query
 	result = events.order_by(Event.start_date).all()
 	return events_schema.jsonify(result)
@@ -163,6 +163,11 @@ def event_get_all():
 def event_most_recent():
 	events = Event.query
 	result = events.order_by(Event.event_id.desc()).first()
+	return events_schema.jsonify(result)
+
+@app.route("/event/organizersEvents/<organizer_id>", methods=["GET"])
+def event_get_organizers_events():
+	result = Event.query.filter_by(organizer_id=organizer_id)
 	return events_schema.jsonify(result)
 
 
