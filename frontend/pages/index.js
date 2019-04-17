@@ -24,7 +24,9 @@ import ReactDOM from 'react-dom';
 if (typeof window !== 'undefined') {
   ReactDOM.render((<Nav />), document.getElementById('root'));
 } */
-
+//import 'bootstrap/dist/css/bootstrap.css';
+//import 'bootstrap/dist/css/bootstrap.css';
+import './bootstrap.css';
 import React from 'react';
 import Link from 'next/link';
 import Head from '../components/head';
@@ -38,24 +40,40 @@ const responseGoogle = (response) => {
   console.log(response);
 }
 
+var divStyle = {
+  color: 'white'
+  //color: 'dodgerblue'
+};
+
+var divStyle2 = {
+  //color: 'white'
+  color: 'dodgerblue'
+};
+
+var divStyle3 = {
+  color: 'black'
+}
+
+
+
 const Home = () => (
   <div>
     <Head title="Home" />
  
-
+ 
     <div className="hero">
-      <h1 className="title">Welcome to TigerNest!</h1>
-      <p className="description">
+      <h1 className="title" style={divStyle}>Welcome to TigerNest!</h1>
+      <p className="description" style={divStyle}>
         Matching Princeton students with visiting students.
       </p>
       <br />
-      <center> I am a.... </center>
+      <center style={divStyle}> I am a.... </center>
       <div className="row">
 
-      <Card>
+      {/* <Card className="text-white" color="dark">
         <h5> Event Organizer </h5>
         <p> Register events that <br /> and visitors sign up for!</p>
-          <center> <Link href="/eventList">
+          <center> <Link href="/myEvents">
             <a className="button">
               Login
             </a>
@@ -66,24 +84,24 @@ const Home = () => (
             </a>
           </Link> </center>
 
-      </Card>
+      </Card> */}
 
-      {/* <Link href="/eventOrganizerLogin">
+      <Link href="/myEvents">
           <a className="card">
-            <h3>Event Organizer</h3>
-            <p> Register events that hosts and visitors sign up for!</p>
+            <h3 style={divStyle3}> Event Organizer</h3>
+            <p style={divStyle3}> Register events that hosts and visitors sign up for!</p>
           </a>
-      </Link> */}
-      <Link href="/hostLogin">
+      </Link> 
+      <Link href="/hostAllEvents">
           <a className="card">
-            <h3>Hosts 🛏️</h3>
-            <p>Host a visiting student!</p>
+            <h3 style={divStyle3}>Hosts 🛏️</h3>
+            <p style={divStyle3}>Host a visiting student!</p>
           </a>
       </Link>
         <Link href="https://open.segment.com/create-next-app">
           <a className="card">
-            <h3>Visitors 💼</h3>
-            <p>
+            <h3 style={divStyle3}>Visitors 💼</h3>
+            <p style={divStyle3}>
               Find a place to stay!
               </p>
               <GoogleLogin
@@ -102,6 +120,8 @@ const Home = () => (
       :global(body) {
         margin: 0;
         background: url("/static/background.jpg");
+        //backbround-color: #FFFFFF;
+        //background-color: #4A4B4B;
         background-size: cover;
 
         font-family: -apple-system, BlinkMacSystemFont, Avenir Next, Avenir,
@@ -151,7 +171,7 @@ const Home = () => (
         font-size: 13px;
         color: #333;
       }
-    `}</style>
+    `}</style> 
   </div>
 )
 

@@ -6,81 +6,12 @@ import fetch from 'isomorphic-unfetch'
 import Router from 'next/router'
 import { Button, Container, Row, Col, CustomInput, Form, FormFeedback, FormGroup, FormControl, Label, Input, FormText} from 'reactstrap';
 import PropTypes from 'prop-types'
-import Cookies from 'js-cookie';
-import './bootstrap.css';
 
 
+const RegisterPage = () => (
 
 
-class EventOrganizerRegister extends React.Component {
-  constructor(props, context){
-    super(props, context);
-    this.state = {
-      mismatchPassword: false,
-      wrongRegCode: false,
-    };
-  
-    this.addOrganizer = this.addOrganizer.bind(this)
-  }
-  async addOrganizer(){
-  //console.log(document.forms["registerForm"]["netid"].value);
-
-    let emailInput = document.forms["registerForm"]["email"].value;
-    //let passwordInput1 = document.forms["registerForm"]["password1"].value;
-    //let passwordInput2 = document.forms["registerForm"]["password2"].value;
-    let firstnameInput = document.forms["registerForm"]["firstname"].value;
-    let lastnameInput = document.forms["registerForm"]["lastname"].value;
-    let registrationCode = document.forms["registerForm"]["regcode"].value;
-    //let netid = document.forms["registerForm"]["netid"].value;
-    let netid = Cookies.get('netid');
-    
-    //
-    const res = await fetch("http://localhost:5000/getRegCode", {
-        method: "GET",
-        headers: {
-            "Content-Type": "text/plain",
-            "Access-Control-Allow-Origin": "*"
-        }})
-
-    var data = await res.json();
-    data = JSON.stringify(data);
-
-    data = JSON.parse(data);
-    let trueRegCode = data['regCode'];
-
-    /*if (passwordInput1 !== passwordInput2)
-    {
-        this.setState(state => ({ mismatchPassword: true}));
-    }*/
-    if (registrationCode !== trueRegCode)
-    {
-      this.setState(state => ({ wrongRegCode: true}));
-    }
-    else 
-    {
-       let organizer_info = {
-        "firstname": firstnameInput,
-        "lastname": lastnameInput,
-        //"password": passwordInput1,
-        "password": "abc",
-        "campus_organizations": "", 
-        "netid": netid,
-        "email": emailInput,
-       };
-       const res = await fetch('http://localhost:5000/event_organizer', {
-        method: "POST",
-        headers: {
-            'Accept': 'application/json',
-            "Content-Type": "application/json"
-        }, 
-        body: JSON.stringify(organizer_info)
-      });
-       Router.push("/myEvents");
-    }
-  }
-  render(props){
-    return (
-  <div>
+<div>
   <Head title="Event Organizer Registration" />
     <Nav />
     <div className="hero">
@@ -116,6 +47,21 @@ class EventOrganizerRegister extends React.Component {
           <Input type="text" name="email" id="email"/>  
           </Col>
           <Col>
+         Password 
+          </Col>
+          <Col>
+          <Input type="password" name="password1" id="password1"/>
+          </Col>
+          </Row>
+          <br />
+          <Row>
+          <Col>
+          Re-Enter Password
+          </Col>
+          <Col>
+          <Input type="password" name="password2" id="password2"/>
+          </Col>
+          <Col>
           Registration Code
           </Col>
           <Col>
@@ -128,7 +74,7 @@ class EventOrganizerRegister extends React.Component {
           NetID: 
           </Col>
           <Col>
-          {Cookies.get('netid')}
+          <Input type="text" name="netid" id="netid"/>
           </Col>
           <Col>
 
@@ -202,10 +148,11 @@ class EventOrganizerRegister extends React.Component {
         transform: translate(-50%, -50%);
       }
     `}</style>
-  </div>)
-
-}
-}
+  </div>
 
 
-export default EventOrganizerRegister
+)
+
+
+
+export default RegisterPage

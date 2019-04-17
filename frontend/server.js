@@ -14,12 +14,14 @@ app.prepare()
         var casURL = 'https://fed.princeton.edu/cas/'
         var cas = new CentralAuthenticationService({
           base_url: casURL,
-          service: "http://localhost:3000"
+          service: "http://localhost:3000" + "/verify"
         })
         server.use(session({
           secret: 'abcdefghijklmnop',
-          maxAge: 24 * 60 * 60 * 1000 * 365 // 365 days
+          maxAge: 24 * 60 * 60 * 1000 * 365, 
+          cookie: { secure: false }
         }))
+        server.set('json spaces', 2);
                     
         /*server.get('*', (req, res) => {
             return handle(req, res);
@@ -42,43 +44,15 @@ app.prepare()
           if (typeof (req.query.redirect) === 'string') {
                 req.session.redirect = req.query.redirect
               }
-
           // Redirect the user to the CAS server
           res.redirect(casURL + 'login?service=' + "http://localhost:3000/verify")
 
         })
         server.get('/logout', function (req, res) {
-
           req.session = null
+          res.cookie('netid', null)
           res.redirect(casURL + 'logout?url=http://localhost:3000')
-
         })
-        /*server.get('/eventOrganizer/*', function (req, res) {
-          // Save the user's redirection destination to a cookie
-          if (req.session.cas) {
-            return handle(req, res);
-          }
-          // Redirect the user to the CAS server
-          res.redirect("/login?redirect=/eventOrganizer/*")
-        }) */
-
-        /*server.get('/eventList', function (req, res) {
-          // Save the user's redirection destination to a cookie
-          if (req.session.cas) {
-            //console.log("hello there")
-
-            return handle(req, res);
-          }
-          // Redirect the user to the CAS server
-          res.redirect("/login?redirect=/eventList")
-        })
-        server.get('/myEvents', function (req, res) {
-          // Save the user's redirection destination to a cookie
-          if (req.session.cas) {
-            return handle(req, res);
-          }
-          res.redirect("/login?redirect=/myEvents")
-        }) */
         server.get('/verify', function(req, res) {
           // Check if the user has a redirection destination
           let redirectDestination = req.session.redirect || '/'
@@ -111,6 +85,8 @@ app.prepare()
             return
           }
 
+          console.log("ticket " + ticket);
+
           // Check if the user's ticket is valid
           cas.validate(ticket, function (err, status, netid) {
             if (err) {
@@ -118,21 +94,14 @@ app.prepare()
               res.sendStatus(500)
               return
             }
-
-            // Save the user's session data
-            req.session.cas = JSON.stringify({
-                  error: err,
-                  status: status,
-                  netid: netid,
-                  ticket: ticket,
-                  session: req.session
-                }); 
-
-            //req.session.netid = String(cas.s)
-            //req.session.status = String(status)
-            res.redirect(redirectDestination)
-        })
-         }) 
+              req.session.cas = {
+                    status: status,
+                    netid: netid
+              }; 
+              res.cookie('netid', netid)
+              //req.session.cookie.netid = netid;
+              res.redirect(redirectDestination);
+         }) });
             /*
             async function netidVerify2(){
                 const res = await fetch('http://localhost:5000/event_organizer/netidVerify/' + netid, {
@@ -156,21 +125,25 @@ app.prepare()
             } 
           }) 
         })*/
+        server.get('/eventOrganizerRegister', function(req, res){
+          return handle(req, res);
+        });
+        server.get('/test', function (req, res) {
+          res.send({yo: req.session.cas.netid});
+        });
 
         server.get('/netid', function (req, res) {
           // Save the user's redirection destination to a cookie
           if (req.session.cas) {
-            //console.log("hello there")
-            //let netidResult = JSON.stringify({netid: req.session.cas['netid']});
-
-            return res.json(req.session.cas)
+            res.send({netid: req.session.cas.netid});
+            console.log("yeeeeeeeeeeeet");
           }
-          // Redirect the user to the CAS server
-          res.redirect("/login?redirect=/eventList")
+          else res.redirect("/login?redirect=/myEvents")
         })        
         server.get('/', function (req, res) {
             return handle(req, res);
         })
+
         server.get('/static/background.img', 
             function (req, res) {
                 return handle(req, res);
@@ -180,7 +153,7 @@ app.prepare()
             if (req.session.cas){
                 return handle(req, res);
             }
-            res.redirect("/login?redirect=/eventList")            
+            res.redirect("/login?redirect=/myEvents")            
         }) 
         /*server.get('/static/background.img', 
             function (req, res) {

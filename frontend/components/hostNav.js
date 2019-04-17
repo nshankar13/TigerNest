@@ -20,7 +20,7 @@ import { Navbar } from 'reactstrap';
 }) */
 
 
-const Nav = () => (
+const NavHost = () => (
   //const history = createMemoryHistory();
 
   <Navbar color="light" light expand="md">
@@ -31,7 +31,12 @@ const Nav = () => (
         </Link>
       </li>
       <li>
-        <Link href="/myEvents">
+        <Link href="/hostAllEvents">
+          <a>All Events</a>
+        </Link>
+      </li>
+      <li>
+        <Link href="/hostMyEvents">
           <a>My Events</a>
         </Link>
       </li>
@@ -81,18 +86,6 @@ const Nav = () => (
   </Navbar>
 
 )
-/*
-export default Nav 
 
-import React from 'react'
-import Header from './header'
-import Main from './main'
 
-const Nav = () => (
-  <div>
-  <Header />
-  <Main />
-  </div>
-)*/
-
-export default Nav
+export default NavHost
