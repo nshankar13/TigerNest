@@ -82,6 +82,7 @@ def event_organizer_verify_netid(netid):
 	#return event_organizer_schema.jsonify(event_organizer)
 	return event_organizer_schema.jsonify(event_organizer)
 
+
 @app.route("/event_organizer/getCount", methods=["GET"])
 def event_organizer_get_count():
 	count = session.query(EventOrganizer.netid).count()
@@ -101,8 +102,10 @@ class Event(db.Model):
 	hosts = db.Column(db.JSON, unique = False)
 	hosting_organization = db.Column(db.Unicode, unique=False)
 	organizer_id = db.Column(db.Unicode, unique=False)
+	organizer_netid = db.Column(db.Unicode, unique=False)
+	event_stage = db.Column(db.Integer, unique=False)
 
-	def __init__(self, name, start_date, end_date, location, expected_number_visitors, number_of_hosts, hosts, start_time, end_time, description, hosting_organization, organizer_id):
+	def __init__(self, name, start_date, end_date, location, expected_number_visitors, number_of_hosts, hosts, start_time, end_time, description, hosting_organization, organizer_netid, organizer_id, event_stage):
 		self.name = name
 		self.start_date = start_date
 		self.end_date = end_date
@@ -115,10 +118,12 @@ class Event(db.Model):
 		self.description = description
 		self.hosting_organization = hosting_organization
 		self.organizer_id = organizer_id
+		self.organizer_netid = organizer_netid
+		self.event_stage = event_stage
 
 class EventSchema(ma.Schema):
 	class Meta:
-		fields = ('event_id', 'name', 'start_date', 'end_date', 'location', 'expected_number_visitors', 'number_of_hosts', 'hosts', 'start_time', 'end_time', 'description', 'hosting_organization', 'organizer_id')
+		fields = ('event_id', 'name', 'start_date', 'end_date', 'location', 'expected_number_visitors', 'number_of_hosts', 'hosts', 'start_time', 'end_time', 'description', 'hosting_organization', 'organizer_netid', 'organizer_id', 'event_stage')
 
 event_schema = EventSchema()
 events_schema = EventSchema(many = True)
@@ -136,9 +141,11 @@ def event_add():
 	end_time = request.json['end_time']
 	description = request.json['description']
 	hosting_organization = request.json['hosting_organization']
+	organizer_netid = request.json['organizer_netid']
 	organizer_id = request.json['organizer_id']
+	event_stage = 0
 
-	new_event = Event(name, start_date, end_date, location, expected_number_visitors, number_of_hosts, hosts, start_time, end_time, description, hosting_organization, organizer_id)
+	new_event = Event(name, start_date, end_date, location, expected_number_visitors, number_of_hosts, hosts, start_time, end_time, description, hosting_organization, organizer_netid, organizer_id, event_stage)
 	db.session.add(new_event)
 	db.session.commit()
 	return event_schema.jsonify(new_event)
@@ -158,10 +165,27 @@ def event_update_info(event_id):
 	event.end_time = request.json['end_time']
 	event.description = request.json['description']
 	event.hosting_organization = request.json['hosting_organization']
-	event.organizer_id = request.json['organizer_id']
+	#event.organizer_id = request.json['organizer_id']
 
 	db.session.commit()
 	return event_schema.jsonify(event)
+
+@app.route("/event/stage/visitor_signup/<event_id>", methods=["POST"])
+def event_update_stage_visitor_signup(event_id):
+	event = Event.query.get(event_id)
+	event.event_stage = 1;
+
+	db.session.commit()
+	return event_schema.jsonify(event)
+
+@app.route("/event/stage/close_signup/<event_id>", methods=["POST"])
+def event_update_stage_close_signup(event_id):
+	event = Event.query.get(event_id)
+	event.event_stage = 2;
+
+	db.session.commit()
+	return event_schema.jsonify(event)
+
 
 @app.route("/event/<event_id>", methods=["GET"])
 def event_get(event_id):
@@ -191,6 +215,10 @@ def event_get_organizers_events():
 	result = Event.query.filter_by(organizer_id=organizer_id)
 	return events_schema.jsonify(result)
 
+@app.route("/event/organizersEvents/netid/<organizer_netid>", methods=["GET"])
+def event_get_organizers_events_netid(organizer_netid):
+	result = Event.query.filter_by(organizer_netid=organizer_netid).order_by(Event.start_date).all()
+	return events_schema.jsonify(result)
 
 @app.route("/event/delete/<event_id>", methods=["DELETE"])
 def event_delete(event_id):
@@ -275,8 +303,9 @@ visitorpairings_schema = VisitorPairingSchema(many = True)"""
 #-----------------------------------------------------------------------------------------------------------------------------------------
 class Pairing(db.Model):
 	pairing_id = db.Column(db.Integer, primary_key=True)
-	host_id = db.Column(db.Integer, unique=False)
+	host_netid = db.Column(db.Unicode, unique=False)
 	event_id = db.Column(db.Integer, unique=False)
+	event_name = db.Column(db.Unicode, unique=False)
 	host_gender = db.Column(db.Unicode, unique=False)
 	same_gender_room = db.Column(db.Boolean, unique=False)
 	host_room_num = db.Column(db.Unicode, unique=False)
@@ -286,9 +315,10 @@ class Pairing(db.Model):
 	host_last_name = db.Column(db.Unicode, unique=False)
 	host_cellphone = db.Column(db.Unicode, unique=False)
 
-	def __init__(self, host_id, event_id, host_gender, same_gender_room, host_room_num, max_visitors, visitor_list, host_first_name, host_last_name, host_cellphone):
-		self.host_id = host_id
+	def __init__(self, host_netid, event_id, event_name, host_gender, same_gender_room, host_room_num, max_visitors, visitor_list, host_first_name, host_last_name, host_cellphone):
+		self.host_netid = host_netid
 		self.event_id = event_id
+		self.event_name = event_name
 		self.host_gender = host_gender
 		self.same_gender_room = same_gender_room
 		self.host_room_num = host_room_num
@@ -301,15 +331,16 @@ class Pairing(db.Model):
 
 class PairingSchema(ma.Schema):
 	class Meta:
-		fields = ('pairing_id', 'host_id', 'event_id', 'host_gender', 'same_gender_room', 'host_room_num', 'max_visitors', 'visitor_list', 'host_first_name', 'host_last_name', 'host_cellphone')
+		fields = ('pairing_id', 'host_netid', 'event_id', 'event_name', 'host_gender', 'same_gender_room', 'host_room_num', 'max_visitors', 'visitor_list', 'host_first_name', 'host_last_name', 'host_cellphone')
 
 pairing_schema = PairingSchema()
 pairings_schema = PairingSchema(many = True)
 
 @app.route("/pairing", methods=["POST"])
 def pairing_add():
-	host_id = request.json['host_id']
+	host_netid = request.json['host_netid']
 	event_id = request.json['event_id']
+	event_name = request.json['event_name']
 	host_gender = request.json['host_gender']
 	same_gender_room = request.json['same_gender_room']
 	host_room_num = request.json['host_room_num']
@@ -319,7 +350,7 @@ def pairing_add():
 	host_last_name = request.json['host_last_name']
 	host_cellphone = request.json['host_cellphone']
 
-	new_pairing = Pairing(host_id, event_id, host_gender, same_gender_room, host_room_num, max_visitors, visitor_list, host_first_name, host_last_name, host_cellphone)
+	new_pairing = Pairing(host_netid, event_id, event_name, host_gender, same_gender_room, host_room_num, max_visitors, visitor_list, host_first_name, host_last_name, host_cellphone)
 	db.session.add(new_pairing)
 	db.session.commit()
 	return pairing_schema.jsonify(new_pairing)
@@ -330,48 +361,161 @@ def pairing_get(pairing_id):
 	return pairing_schema.jsonify(pairing)
 
 
-@app.route("/pairing/events_for_host/<host_id>", methods=["GET"])
-def pairing_get_event_for_host(host_id):
-	pairings = Pairing.query.filter_by(host_id=host_id).all()
+@app.route("/pairing/events_for_host/<host_netid>", methods=["GET"])
+def pairing_get_event_for_host(host_netid):
+	pairings = Pairing.query.filter_by(host_netid=host_netid).all()
 	return pairings_schema.jsonify(pairings)
+
+@app.route("/pairing/hosts_for_event/<event_id>", methods=["GET"])
+def pairing_get_host_for_event(event_id):
+	pairings = Pairing.query.filter_by(event_id=event_id).all()
+	return pairings_schema.jsonify(pairings)
+
 
 @app.route("/pairing/delete/<pairing_id>", methods=["DELETE"])
 def pairing_delete(pairing_id):
 	pairing = Pairing.query.get(pairing_id)
-	return pairing_shema.jsonify(pairing)
+	db.session.delete(pairing)
+	db.session.commit()
+	return pairing_schema.jsonify(pairing)
+
+@app.route("/pairing/delete_events/<event_id>", methods=["DELETE"])
+def pairing_delete_events(event_id):
+	pairings = Pairing.query.filter_by(event_id=event_id).all()
+	db.session.delete(pairings)
+	db.session.commit()
+	return pairings_schema.jsonify(pairings)
+
+@app.route("/pairing/update/<pairing_id>", methods=["POST"])
+def pairing_update(pairing_id):
+	pairing = Pairing.query.get(pairing_id)
+	pairing.host_gender = request.json['host_gender']
+	pairing.same_gender_room = request.json['same_gender_room']
+	pairing.host_room_num = request.json['host_room_num']
+	pairing.max_visitors = request.json['max_visitors']
+	pairing.host_first_name = request.json['host_first_name']
+	pairing.host_last_name = request.json['host_last_name']
+	pairing.host_cellphone = request.json['host_cellphone']
+
+	db.session.commit()
+	return pairing_schema.jsonify(pairing)
+
+
+
+#-----------------------------------------------------------------------------------------------------------------------------------------
+class VisitorPairing(db.Model):
+	visitor_pairing_id = db.Column(db.Integer, primary_key = True)
+	visitor_id = db.Column(db.Integer, unique=False)
+	visitor_email = db.Column(db.Unicode, unique=False)
+	host_id = db.Column(db.Integer, unique=False)
+	event_id = db.Column(db.Integer, unique=False)
+	event_name = db.Column(db.Unicode, unique=False)
+	pairing_id = db.Column(db.Unicode, unique=False)
+
+	def __init__(self, visitor_id, visitor_email, host_id, event_id, event_name, pairing_id):
+		self.visitor_id = visitor_id
+		self.visitor_email = visitor_email
+		self.host_id = host_id
+		self.event_id = event_id 
+		self.event_name = event_name
+		self.pairing_id = pairing_id
+
+class VisitorPairingSchema(ma.Schema):
+	class Meta:
+		fields=('visitor_pairing_id', 'visitor_id', 'visitor_email', 'host_id', 'event_id', 'event_name', 'pairing_id')
+
+visitor_pairing_schema = VisitorPairingSchema()
+visitor_pairings_schema = VisitorPairingSchema(many = True)
+
+
+@app.route("/visitor_pairing", methods=["POST"])
+def visitor_pairing_add():
+	visitor_id = request.json['visitor_id']
+	visitor_email = request.json['visitor_email']
+	host_id = request.json['host_id']
+	event_id = request.json['event_id']
+	event_name = request.json['event_name']
+	pairing_id = request.json['pairing_id']
+	new_visitor_pairing = VisitorPairing(visitor_id, visitor_email, host_id, event_id, event_name, pairing_id)
+	db.session.add(new_visitor_pairing)
+	db.session.commit()
+	return visitor_pairing_schema.jsonify(new_visitor_pairing)
+
+#-----------------------------------------------------------------------------------------------------------------------------------------
+class Eligibilities(db.Model):
+	eligibility_id = db.Column(db.Integer, primary_key = True)
+	visitor_email = db.Column(db.Unicode, unique=False)
+	event_id = db.Column(db.Unicode, unique=False)
+	event_name = db.Column(db.Unicode, unique=False)
+	visitor_id = db.Column(db.Unicode, unique=False)
+
+	def __init__(self, visitor_email, event_id, event_name, visitor_id):
+		self.visitor_email = visitor_email
+		self.event_id = event_id
+		self.event_name = event_name
+		self.visitor_id = visitor_id
+
+class EligibilitySchema(ma.Schema):
+	class Meta:
+		fields=('eligility_id', 'visitor_email', 'event_id', 'event_name', 'visitor_id')
+
+
+eligibility_schema = EligibilitySchema()
+eligibilities_schema = EligibilitySchema(many = True)
+
+@app.route("/eligibility", methods=["POST"])
+def eligibility_add():
+	visitor_email = request.json['visitor_email']
+	event_id = request.json['event_id']
+	event_name = request.json['event_name']
+	visitor_id = request.json['visitor_id']
+	new_eligibility = Eligibility(visitor_email, event_id, event_name, visitor_id)
+	db.session.add(new_eligibility)
+	db.session.commit()
+	return eligibility_schema.jsonify(new_eligibility)
+
+
+@app.route("/eligibility/events_for_visitor/<visitor_email>", methods=["GET"])
+def eligibility_events_for_visitor(visitor_email):
+	eligibilities = Eligibilities.query.filter_by(visitor_email=visitor_email).all()
+	return eligibilities_schema.jsonify(eligibilities)
+
 
 #-----------------------------------------------------------------------------------------------------------------------------------------
 class Visitor(db.Model):
 	visitor_id = db.Column(db.Integer, primary_key = True)
 	gender = db.Column(db.Unicode, unique = False)
-	name = db.Column(db.Unicode, unique = False)
+	firstname = db.Column(db.Unicode, unique = False)
+	lastname = db.Column(db.Unicode, unique = False)
 	same_gender = db.Column(db.Boolean, unique = False)
 	university = db.Column(db.Unicode, unique = False)
-	email = db.Column(db.Unicode, unique = False)
+	email = db.Column(db.Unicode, unique = True)
 
-	def __init__(self, gender, name, same_gender, university, email): 
+	def __init__(self, gender, firstname, lastname, same_gender, university, email): 
 		self.gender = gender
-		self.name = name 
+		self.firstname = firstname
+		self.lastname = lastname 
 		self.same_gender = same_gender
 		self.university = university 
 		self.email = email
 
 class VisitorSchema(ma.Schema):
 	class Meta:
-		fields = ('visitor_id', 'gender', 'name', 'same_gender', 'university', 'email')
+		fields = ('visitor_id', 'gender', 'firstname', 'lastname', 'same_gender', 'university', 'email')
 
 visitor_schema = VisitorSchema()
 visitors_schema = VisitorSchema(many = True)
 
 @app.route("/visitor", methods=["POST"])
 def visitor_add():
-	gender = request.json['gender']
-	name = request.json['name']
-	same_gender = request.json['same_gender']
-	university = request.json['university']
+	gender = ""
+	firstname = request.json['firstname']
+	lastname = request.json['lastname']
+	same_gender = None
+	university = ""
 	email = request.json['email']
 
-	new_visitor = Visitor(gender, name, same_gender, university, email)
+	new_visitor = Visitor(gender, firstname, lastname, same_gender, university, email)
 	db.session.add(new_visitor)
 	db.session.commit()
 	return visitor_scheme.jsonify(new_visitor)
@@ -379,7 +523,12 @@ def visitor_add():
 @app.route("/visitor/<visitor_id>", methods=["GET"])
 def visitor_get(visitor_id):
 	visitor = Visitor.query.get(visitor_id)
-	return visitor_schema.jsonify(host)
+	return visitor_schema.jsonify(visitor)
+
+@app.route("/visitor/email/<email>", methods=["GET"])
+def visitor_getemail(email):
+	visitor = Visitor.query.get(email)
+	return visitor_schema.jsonify(visitor)
 
 db.create_all()
 #---------------------------------------------------------------------------------------------------

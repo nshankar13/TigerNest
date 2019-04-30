@@ -3,10 +3,10 @@ import React from 'react'
 
 import Link from 'next/link'
 import Head from '../components/head'
-import Nav from '../components/nav'
+import NavBar from '../components/nav'
 import fetch from 'isomorphic-unfetch'
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Row, Col, Input, Form, FormText, CustomInput } from 'reactstrap';
-import { Card, CardImg, CardText, CardHeader, CardBody, CardTitle, CardSubtitle, CardDeck} from 'reactstrap';
+import { Nav, NavItem, NavLink, TabContent, TabPane, Card, CardImg, CardText, CardHeader, CardBody, CardTitle, CardSubtitle, CardDeck} from 'reactstrap';
 import ReactFileReader from 'react-file-reader';
 import EventOrganizerRegister from './eventOrganizerRegister'
 
@@ -15,6 +15,8 @@ import Cookies from 'js-cookie';
 
 const database_url = "http://localhost:5000"
 const server_url = "http://localhost:3000"
+
+const axios = require('axios')
 
 var divStyle = {
   color: 'white'
@@ -31,6 +33,11 @@ var divStyle3 = {
   color: 'dodgerblue'
 };
 
+var divStyle4 = {
+  //color: 'black'
+  color: 'seagreen'
+};
+
 
 class eventList extends React.Component {
   constructor(props, context){
@@ -42,6 +49,9 @@ class eventList extends React.Component {
       visitorEmails: [],
       event_org_id: -1,
       user_verified: false,
+      visitorSignupModal: false,
+      finalizePairingsModal: false,
+      activeTab: '1',
       current_event: { 
         name:"",
         start_time:"",
@@ -60,7 +70,41 @@ class eventList extends React.Component {
     this.handleFiles = this.handleFiles.bind(this);
     this.editModalToggle = this.editModalToggle.bind(this);
     this.deleteModalToggle = this.deleteModalToggle.bind(this);
+    this.toggleTab = this.toggleTab.bind(this);
+    this.beginVisitorSignup = this.beginVisitorSignup.bind(this);
+    this.visitorSignupToggle = this.visitorSignupToggle.bind(this);
+    this.finalizePairings = this.finalizePairings.bind(this);
+    this.finalizePairingsToggle = this.finalizePairingsToggle.bind(this);
     //this.verifyUser = this.verifyUser.bind(this);
+  }
+  toggleTab(tab){
+    if (this.state.activeTab !== tab) {
+      this.setState({
+        activeTab: tab
+      });
+    }
+  }
+  async beginVisitorSignup(){
+    const res = await fetch(database_url + '/event/stage/visitor_signup/' + this.state.current_event.event_id, {
+        method: "POST",
+        headers: {
+            'Accept': 'application/json',
+            "Content-Type": "application/json"
+        }
+    });
+    this.visitorSignupToggle();
+
+  }
+  async finalizePairings(){
+    const res = await fetch(database_url + '/event/stage/close_signup/' + this.state.current_event.event_id, {
+        method: "POST",
+        headers: {
+            'Accept': 'application/json',
+            "Content-Type": "application/json"
+        }
+    });
+    this.finalizePairingsToggle();
+
   }
   async addOrganizer(){
   //console.log(document.forms["registerForm"]["netid"].value);
@@ -158,6 +202,56 @@ class eventList extends React.Component {
 
 
   }
+  async finalizePairingsToggle(event){
+    if (!this.state.finalizePairingsModal)
+    {
+      let val = event.target.value;
+    
+      const res = await fetch(database_url + '/event/' + val, {
+           method: "GET",
+           headers: {
+               "Content-Type": "text/plain",                
+               "Access-Control-Allow-Origin": "*"
+      }})
+      var data = await res.json()
+      data = JSON.stringify(data)
+      data = JSON.parse(data)
+      this.setState(state => ({ current_event: data}));
+    }
+
+      //console.log(data);
+
+    
+    this.setState(prevState => ({
+      finalizePairingsModal: !prevState.finalizePairingsModal
+    }));
+    
+  }
+  async visitorSignupToggle(event){
+    if (!this.state.visitorSignupModal)
+    {
+      let val = event.target.value;
+    
+      const res = await fetch(database_url + '/event/' + val, {
+           method: "GET",
+           headers: {
+               "Content-Type": "text/plain",                
+               "Access-Control-Allow-Origin": "*"
+      }})
+      var data = await res.json()
+      data = JSON.stringify(data)
+      data = JSON.parse(data)
+      this.setState(state => ({ current_event: data}));
+    }
+
+      //console.log(data);
+
+    
+    this.setState(prevState => ({
+      visitorSignupModal: !prevState.visitorSignupModal
+    }));
+    
+  }
   async deleteModalToggle(event){
     if (!this.state.deleteModal)
     {
@@ -214,18 +308,6 @@ class eventList extends React.Component {
 
   }
   async addEvent(){
-    //let name = document.forms["eventCreateForm"]["eventname"].value;
-    //console.log(name)
-    //console.log(this.state.visitorEmails)
-   
-    
-
-    //console.log(session_current_organizer);
-
-    /*if (session_eventorg_id != -1)
-    {
-      this.setState(state => ({ event_org_id: parseInt(session_eventorg_id)}));
-    } */
 
     const res1 = await fetch('http://localhost:5000/event_organizer/netidVerify/' + Cookies.get('netid'), {
             method: "GET",
@@ -249,7 +331,8 @@ class eventList extends React.Component {
       "number_of_hosts": 0,
       "hosts": "",
       "hosting_organization": document.forms["eventCreateForm"]["hostingorg"].value,
-      "organizer_id": organizer_id};
+      "organizer_id": organizer_id, 
+      "organizer_netid": String(Cookies.get('netid'))};
 
     const res = await fetch(database_url + '/event', {
         method: "POST",
@@ -260,13 +343,6 @@ class eventList extends React.Component {
         body: JSON.stringify(eventInfo)
     });
 
-    /*const count = await fetch('http://localhost:5000/event/sort_date', {
-            method: "GET",
-            headers: {
-                "Content-Type": "text/plain",
-                "Access-Control-Allow-Origin": "*"
-            }}) */
-
     this.toggle();
   }
   handleFiles = files => {
@@ -274,9 +350,9 @@ class eventList extends React.Component {
     var result = [];
     reader.onload = function(e) {
     // Use reader.result
-    result = reader.result.split(",")
+    result = reader.result.split("\n")
     
-    alert(result[0])
+    alert(result[1])
     }
     this.setState(state => ({ visitorEmails: result}));
   reader.readAsText(files[0]);
@@ -320,28 +396,13 @@ class eventList extends React.Component {
     
 
   } 
-  static async getInitialProps(){
+  static async getInitialProps({req}){
 
-
-    /*var res = await fetch(server_url + '/netid', {
-            method: "GET",
-            credentials: 'include',
-            headers: {
-                "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": "*"
-    }});
-    var session_netid = "hello"; */
-    //var session_netid = await res.json();
-    //console.log(session_netid)
-    //var resp = await session_net_id.json()
-    //session_net_id = resp['netid']
-    //resp = JSON.stringify(resp);
-    //console.log(resp);
     var verified = false;
     var netid = String(Cookies.get('netid'));
 
 
-    console.log(netid);
+    //console.log(netid);
 
     const session_current_organizer = await fetch(database_url + '/event_organizer/netidVerify/' + netid, {
             method: "GET",
@@ -362,8 +423,15 @@ class eventList extends React.Component {
       //this.setState(state => ({ user_verified: true}));
     } 
 
+    const res1 = await axios({
+        url: 'http://localhost:3000/netid',
+        // manually copy cookie on server,
+        // let browser handle it automatically on client
+        headers: req ? {cookie: req.headers.cookie} : undefined,
+      });
+
     
-    const res2 = await fetch(database_url + '/event/sort_date', {
+    const res2 = await fetch(database_url + '/event/organizersEvents/netid/' + res1.data.netid, {
             method: "GET",
             headers: {
                 "Content-Type": "text/plain",
@@ -373,6 +441,8 @@ class eventList extends React.Component {
     data = JSON.stringify(data)
 
     data = JSON.parse(data)
+
+
      //console.log(data)
 
      let descriptions = []
@@ -385,12 +455,26 @@ class eventList extends React.Component {
      let number_of_hosts = []
      let start_dates = []
      let start_times = []
-     let events = []
+     let eventsHostSignup = []
+     let eventsVisitorSignup = []
+     let eventsClosedSignup = []
      let resArray = []
 
      for (let i = 0; i < data.length; i++)
      {
-      events.push(JSON.stringify(data[i]))
+       // events.push(JSON.stringify(data[i]))
+       if (data[i]['event_stage'] == 0)
+       {
+        eventsHostSignup.push(JSON.stringify(data[i]))
+       }
+       else if (data[i]['event_stage'] == 1)
+       {
+        eventsVisitorSignup.push(JSON.stringify(data[i]))
+       }
+       else
+       {
+        eventsClosedSignup.push(JSON.stringify(data[i]))
+       }
      }
 
      return {
@@ -404,7 +488,9 @@ class eventList extends React.Component {
       number_of_hosts: number_of_hosts,
       start_dates: start_dates,
       start_times: start_times,
-      events:events,
+      eventsHostSignup:eventsHostSignup,
+      eventsVisitorSignup:eventsVisitorSignup,
+      eventsClosedSignup:eventsClosedSignup,
       userVerified: verified
      }
 
@@ -413,10 +499,12 @@ class eventList extends React.Component {
 
       this.verifyUser(); 
       return(
+
+
       <div>
       <Head title="My Events" />
 
-        <Nav />
+        <NavBar />
         
         <div className="hero">
           <center> <h2 style={divStyle}> My Events </h2> </center>
@@ -434,13 +522,13 @@ class eventList extends React.Component {
           Start Date
           </Col>
           <Col>
-          <Input type="text" name="startdate" id="startdate"/>  
+          <Input type="date" name="startdate" id="startdate"/>  
           </Col>
           <Col>
           Start Time
           </Col>
           <Col>
-          <Input type="text" name="starttime" id="starttime"/>  
+          <Input type="time" name="starttime" id="starttime"/>  
           </Col>
           </Row>
           <br />
@@ -449,13 +537,13 @@ class eventList extends React.Component {
          End Date 
           </Col>
           <Col>
-          <Input type="text" name="enddate" id="enddate"/>
+          <Input type="date" name="enddate" id="enddate"/>
           </Col>
           <Col>
           End Time
           </Col>
           <Col>
-          <Input type="text" name="endtime" id="endtime"/>
+          <Input type="time" name="endtime" id="endtime"/>
           </Col>
           </Row>
           <br />
@@ -494,7 +582,7 @@ class eventList extends React.Component {
       </Modal>
 
       <Modal key="2" isOpen={this.state.editModal} toggle={this.editModalToggle} className={this.props.className}>
-          <ModalHeader toggle={this.editModalToggle}> <p className="text-primary"> Edit your event </p></ModalHeader>
+          <ModalHeader toggle={this.editModalToggle}> <p className="text-primary"> Edit {this.state.current_event.name} </p></ModalHeader>
           <ModalBody>
           <Form id="eventEditForm">
           <Row> <Col> Event Name: </Col> <Col> <Input type="text" name="eventname" id="eventname" defaultValue={this.state.current_event.name}/> </Col> </Row>
@@ -504,13 +592,13 @@ class eventList extends React.Component {
           Start Date
           </Col>
           <Col>
-          <Input type="text" name="startdate" id="startdate" defaultValue={this.state.current_event.start_date}/>  
+          <Input type="date" name="startdate" id="startdate" defaultValue={this.state.current_event.start_date}/>  
           </Col>
           <Col>
           Start Time
           </Col>
           <Col>
-          <Input type="text" name="starttime" id="starttime" defaultValue={this.state.current_event.start_time}/>  
+          <Input type="time" name="starttime" id="starttime" defaultValue={this.state.current_event.start_time}/>  
           </Col>
           </Row>
           <br />
@@ -519,13 +607,13 @@ class eventList extends React.Component {
          End Date 
           </Col>
           <Col>
-          <Input type="text" name="enddate" id="enddate" defaultValue={this.state.current_event.end_date}/>
+          <Input type="date" name="enddate" id="enddate" defaultValue={this.state.current_event.end_date}/>
           </Col>
           <Col>
           End Time
           </Col>
           <Col>
-          <Input type="text" name="endtime" id="endtime" defaultValue={this.state.current_event.end_time}/>
+          <Input type="time" name="endtime" id="endtime" defaultValue={this.state.current_event.end_time}/>
           </Col>
           </Row>
           <br />
@@ -573,15 +661,66 @@ class eventList extends React.Component {
             <Button color="secondary" onClick={this.deleteModalToggle}>Cancel</Button>
           </ModalFooter>
       </Modal>
+      <Modal key="4" isOpen={this.state.visitorSignupModal} toggle={this.visitorSignupToggle} className={this.props.className}>
+          <ModalHeader toggle={this.visitorSignupToggle}> <p className="text-success"> Begin Visitor Signup for {this.state.current_event.name} </p></ModalHeader>
+          <ModalBody>
+          Are you sure you want to begin visitor signup for this event?
+          </ModalBody>
+          <ModalFooter>
+            <Button color="success" onClick={this.beginVisitorSignup}>Begin Visitor Signup</Button>{' '}
+            <Button color="secondary" onClick={this.visitorSignupToggle}>Cancel</Button>
+          </ModalFooter>
+      </Modal>
+
+      <Modal key="5" isOpen={this.state.finalizePairingsModal} toggle={this.finalizePairingsToggle} className={this.props.className}>
+          <ModalHeader toggle={this.finalizePairingsToggle}> <p className="text-success"> Finalize Pairings for {this.state.current_event.name} </p></ModalHeader>
+          <ModalBody>
+          Are you sure you want to finalize pairings for this event? Hosts and visitors will no longer be able to sign up. 
+          </ModalBody>
+          <ModalFooter>
+            <Button color="success" onClick={this.finalizePairings}>Finalize Pairings</Button>{' '}
+            <Button color="secondary" onClick={this.finalizePairingsToggle}>Cancel</Button>
+          </ModalFooter>
+      </Modal>
       <br />
 
+       <Nav tabs>
+          <NavItem>
+            <NavLink
+              active={this.state.activeTab === '1'}
+              onClick={() => { this.toggleTab('1'); }}
+            >
+              Pending
+            </NavLink>
+          </NavItem>
+          <NavItem>
+            <NavLink
+              active={this.state.activeTab === '2'}
+              onClick={() => { this.toggleTab('2'); }}
+            >
+              Visitor Signup in Progress
+            </NavLink>
+          </NavItem>
+          <NavItem>
+            <NavLink
+              active={this.state.activeTab === '3'}
+              onClick={() => { this.toggleTab('3'); }}
+            >
+              Completed
+            </NavLink>
+          </NavItem>
+    </Nav> 
+    <br />
+
+    <TabContent activeTab={this.state.activeTab}>
+    <TabPane tabId="1">
       <CardDeck>
-        {this.props.events.map((value, index) => {
+        {this.props.eventsHostSignup.map((value, index) => {
           let jsonVal = JSON.parse(value)
           return <div key={index}> 
-                 <Card className="card bg-dark mb-3" key={index}> 
-                  <CardHeader key="0"> <center> <a className="text-light"> {jsonVal['name']} </a> </center> </CardHeader>
-                <img width="350" height="170" src="/static/conference.jpg" alt="Card image cap" />
+                 <Card className="card bg-light mb-3" key={index}> 
+                  <CardHeader key="0"> <center> <a style={divStyle2}> {jsonVal['name']} </a> </center> </CardHeader>
+                <img width="380" height="170" src="/static/conference.jpg" alt="Card image cap" />
                  {/* <p key="1"> Hosting Organization: {jsonVal['hosting_organization']} </p>
                  <p key="2"> Start Date: {jsonVal['start_date']} </p>
                  <p key="3"> Start Time: {jsonVal['start_time']} </p>
@@ -592,7 +731,7 @@ class eventList extends React.Component {
                 <Row> 
                  <Col> <Button color="danger" key="10" size="sm" value={jsonVal['event_id']} onClick={this.deleteModalToggle}> Cancel Event </Button> </Col>
                  <Col> <Button color="primary" key="8" size="sm" value={jsonVal['event_id']} onClick={this.editModalToggle}> Edit Event </Button> </Col>
-                 <Col> <Button color="success" key="9" size="sm" value={jsonVal['event_id']}> Begin Matching </Button> </Col> 
+                 <Col> <Button color="success" key="9" size="sm" value={jsonVal['event_id']} onClick={this.visitorSignupToggle}> Begin Visitor Signup</Button> </Col> 
 
                  </Row>
 
@@ -601,6 +740,66 @@ class eventList extends React.Component {
   
         })}
         </CardDeck>
+        </TabPane>
+
+        <TabPane tabId="2">
+      <CardDeck>
+        {this.props.eventsVisitorSignup.map((value, index) => {
+          let jsonVal = JSON.parse(value)
+          return <div key={index}> 
+                 <Card className="card bg-light mb-3" key={index}> 
+                  <CardHeader key="0"> <center> <a style={divStyle2}> {jsonVal['name']} </a> </center> </CardHeader>
+                <img width="380" height="170" src="/static/conference.jpg" alt="Card image cap" />
+                 {/* <p key="1"> Hosting Organization: {jsonVal['hosting_organization']} </p>
+                 <p key="2"> Start Date: {jsonVal['start_date']} </p>
+                 <p key="3"> Start Time: {jsonVal['start_time']} </p>
+                 <p key="4"> End Date: {jsonVal['end_date']} </p>
+                 <p key="5"> End Time: {jsonVal['end_time']} </p>  
+                 <p key="6"> Location: {jsonVal['location']} </p>  */}
+                 
+                <Row> 
+                 <Col> <Button color="danger" key="10" size="sm" value={jsonVal['event_id']} onClick={this.deleteModalToggle}> Cancel Event </Button> </Col>
+                 <Col> <Button color="primary" key="8" size="sm" value={jsonVal['event_id']} onClick={this.editModalToggle}> Edit Event </Button> </Col>
+                 <Col> <Button color="success" key="9" size="sm" value={jsonVal['event_id']} onClick={this.finalizePairingsToggle}> Finalize Pairings</Button> </Col> 
+
+                 </Row>
+
+                 </Card> 
+                 </div>
+  
+        })}
+        </CardDeck>
+        </TabPane>
+       <TabPane tabId="3">
+      <CardDeck>
+        {this.props.eventsClosedSignup.map((value, index) => {
+          let jsonVal = JSON.parse(value)
+          return <div key={index}> 
+                 <Card className="card bg-light mb-3" key={index}> 
+                  <CardHeader key="0"> <center> <a style={divStyle2}> {jsonVal['name']} </a> </center> </CardHeader>
+                <img width="365" height="170" src="/static/conference.jpg" alt="Card image cap" />
+                 {/* <p key="1"> Hosting Organization: {jsonVal['hosting_organization']} </p>
+                 <p key="2"> Start Date: {jsonVal['start_date']} </p>
+                 <p key="3"> Start Time: {jsonVal['start_time']} </p>
+                 <p key="4"> End Date: {jsonVal['end_date']} </p>
+                 <p key="5"> End Time: {jsonVal['end_time']} </p>  
+                 <p key="6"> Location: {jsonVal['location']} </p>  */}
+                 
+                <Row> 
+                 <Col> <Button color="danger" key="10" size="sm" value={jsonVal['event_id']} onClick={this.deleteModalToggle}> Cancel Event </Button> </Col>
+                 <Col> <Button color="primary" key="8" size="sm" value={jsonVal['event_id']} onClick={this.editModalToggle}> Edit Event </Button> </Col>
+                 <Col> <Button color="success" key="9" size="sm" value={jsonVal['event_id']}> View Matchings </Button> </Col> 
+
+                 </Row>
+
+                 </Card> 
+                 </div>
+  
+        })}
+        </CardDeck>
+        </TabPane> 
+
+      </TabContent>
     </div>
 <style jsx>{`
       .hero {

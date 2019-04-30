@@ -17,13 +17,18 @@ var divStyle = {
   //color: 'dodgerblue'
 };
 
+const axios = require('axios');
+
 class eventListHost extends React.Component {
   constructor(props, context){
     super(props, context);
     this.state = {
       modal: false,
+      dropEventModal: false,
       addHostModal: false,
       visitorEmails: [],
+      current_pairing: -1,
+      eventList: [],
       current_event: { 
         name:"",
         start_time:"",
@@ -38,6 +43,9 @@ class eventListHost extends React.Component {
     this.addHost = this.addHost.bind(this);
     this.editEvent = this.editEvent.bind(this);
     this.handleFiles = this.handleFiles.bind(this);
+    this.dropEventToggle = this.dropEventToggle.bind(this);
+    this.dropEvent = this.dropEvent.bind(this);
+    this.filterEvents = this.filterEvents.bind(this);
   }
   async editEvent(){
     console.log(this.state.visitorEmails)
@@ -57,7 +65,7 @@ class eventListHost extends React.Component {
       "organizer_id": 1,};
 
     const res = await fetch('http://localhost:5000/event/update/' + this.state.current_event.event_id, {
-        method: "PUT",
+        method: "POST",
         headers: {
             'Accept': 'application/json',
             "Content-Type": "application/json"
@@ -69,15 +77,15 @@ class eventListHost extends React.Component {
 
 
   }
-  async addHostToggle(event) {
+  async dropEventToggle(event) {
 
-    this.setState(state => ({ visitorEmails: ""}));
+    //this.setState(state => ({ visitorEmails: ""}));
     //this.setState(state => ({ current_event: event.target.value}));
-    if (!this.state.addHostModal)
+    if (!this.state.dropEventModal)
     {
       let val = event.target.value;
     
-      const res = await fetch('http://localhost:5000/event/' + val, {
+      const res = await fetch('http://localhost:5000/pairing/' + val, {
            method: "GET",
            headers: {
                "Content-Type": "text/plain",                
@@ -86,7 +94,37 @@ class eventListHost extends React.Component {
       var data = await res.json()
       data = JSON.stringify(data)
       data = JSON.parse(data)
-      this.setState(state => ({ current_event: data}));
+      this.setState(state => ({ current_pairing: data}));
+    }
+
+      //console.log(data);
+
+    
+    this.setState(prevState => ({
+      dropEventModal: !prevState.dropEventModal
+    }));
+    
+
+
+  }
+  async addHostToggle(event) {
+
+    this.setState(state => ({ visitorEmails: ""}));
+    //this.setState(state => ({ current_event: event.target.value}));
+    if (!this.state.addHostModal)
+    {
+      let val = event.target.value;
+    
+      const res = await fetch('http://localhost:5000/pairing/' + val, {
+           method: "GET",
+           headers: {
+               "Content-Type": "text/plain",                
+               "Access-Control-Allow-Origin": "*"
+        }})
+      var data = await res.json()
+      data = JSON.stringify(data)
+      data = JSON.parse(data)
+      this.setState(state => ({ current_pairing: data}));
     }
 
       //console.log(data);
@@ -99,26 +137,36 @@ class eventListHost extends React.Component {
 
 
   }
+  async dropEvent(){
+
+     const res = await fetch('http://localhost:5000/pairing/delete/' + this.state.current_pairing.pairing_id, {
+        method: "DELETE",
+        headers: {
+            'Accept': 'application/json',
+            "Content-Type": "application/json"
+        }
+    });
+
+     this.dropEventToggle();
+  }
   async addHost(){
     //let name = document.forms["eventCreateForm"]["eventname"].value;
     //console.log(name)
     let genderVal = document.forms["hostSignupForm"]["radio1"].value;
     let same_gender = genderVal === "Yes" ? true : false;
-    console.log(this.state.visitorEmails)
+    //console.log(this.state.visitorEmails)
     let pairingInfo = {
       "host_first_name": document.forms["hostSignupForm"]["firstname"].value,
       "host_last_name": document.forms["hostSignupForm"]["lastname"].value,
-      "host_id": 1,
       "host_gender": document.forms["hostSignupForm"]["radio2"].value,
       "same_gender_room": same_gender,
       "host_room_num": document.forms["hostSignupForm"]["roomnum"].value,
       "max_visitors": document.forms["hostSignupForm"]["maxvisitors"].value,
-      "visitor_list": {},
       "host_cellphone": document.forms["hostSignupForm"]["cellnum"].value,
       "event_id": this.state.current_event.event_id
       };
 
-    const res = await fetch('http://localhost:5000/pairing', {
+    const res = await fetch('http://localhost:5000/pairing/update/' + this.state.current_pairing.pairing_id, {
         method: "POST",
         headers: {
             'Accept': 'application/json',
@@ -149,9 +197,11 @@ class eventListHost extends React.Component {
     if (!this.state.modal)
       this.setState(state => ({ visitorEmails: ""}));
   }
-  static async getInitialProps(){
-        const netid = Cookies.get('netid')
-        const res = await fetch('http://localhost:5000/pairing/events_for_host/1', {
+  async filterEvents()
+  {
+    var netid = String(Cookies.get('netid'));
+
+    const res = await fetch('http://localhost:5000/pairing/events_for_host/' + netid, {
             method: "GET",
             headers: {
                 "Content-Type": "text/plain",
@@ -161,18 +211,7 @@ class eventListHost extends React.Component {
       data = JSON.stringify(data)
 
      data = JSON.parse(data)
-     //console.log(data)
 
-     let descriptions = []
-     let end_dates = []
-     let end_times = []
-     let expected_number_visitors = []
-     let hosting_organizations = []
-     let locations = []
-     let names = []
-     let number_of_hosts = []
-     let start_dates = []
-     let start_times = []
      let events = []
 
      for (let i = 0; i < data.length; i++)
@@ -189,6 +228,63 @@ class eventListHost extends React.Component {
       start_times.push(data[i]['start_time'])*/
       events.push(JSON.stringify(data[i]))
      }
+
+     //console.log(events)
+
+     this.setState({
+        eventList: events
+      });
+  }
+  static async getInitialProps({req}){
+        //const netid = Cookies.get('netid')
+        /*const res = await fetch('http://localhost:5000/pairing/events_for_host/' + netid, {
+            method: "GET",
+            headers: {
+                "Content-Type": "text/plain",
+                "Access-Control-Allow-Origin": "*"
+            }})
+      var data = await res.json()
+      data = JSON.stringify(data)
+
+     data = JSON.parse(data) */
+     //console.log(data)
+
+     const res1 = await axios({
+        url: 'http://localhost:3000/netid',
+        // manually copy cookie on server,
+        // let browser handle it automatically on client
+        headers: req ? {cookie: req.headers.cookie} : undefined,
+      });
+
+     const res = await fetch('http://localhost:5000/pairing/events_for_host/' + res1.data.netid, {
+            method: "GET",
+            headers: {
+                "Content-Type": "text/plain",
+                "Access-Control-Allow-Origin": "*"
+            }})
+      var data = await res.json()
+      data = JSON.stringify(data)
+
+     data = JSON.parse(data)
+
+     let descriptions = []
+     let end_dates = []
+     let end_times = []
+     let expected_number_visitors = []
+     let hosting_organizations = []
+     let locations = []
+     let names = []
+     let number_of_hosts = []
+     let start_dates = []
+     let start_times = []
+     let events = []
+     
+     for(let i = 0; i < data.length; i++)
+     {
+      events.push(data[i]);
+     }
+
+     
      return {
       descriptions: descriptions,
       end_dates: end_dates,
@@ -200,7 +296,7 @@ class eventListHost extends React.Component {
       number_of_hosts: number_of_hosts,
       start_dates: start_dates,
       start_times: start_times,
-      events:events
+      events: events
      }
 
       /*return {
@@ -219,17 +315,23 @@ class eventListHost extends React.Component {
 
   }
   render(props){ 
+
+    /*this.setState({
+        eventList: this.filterEvents()
+      }); */
+      //this.filterEvents();
     return(
   <div>
   <Head title="Host Events" />
     <HostNav />
     
     <div className="hero">
-      <center> <h2 style={divStyle}> Host for an event!</h2> </center>
+      <center> <h2 style={divStyle}> Your Events</h2> </center>
       <br />
 
+
       <Modal key="1" isOpen={this.state.addHostModal} toggle={this.addHostToggle} className={this.props.className}>
-          <ModalHeader toggle={this.addHostToggle}> <p className="text-primary"> Host for {this.state.current_event.name} </p> </ModalHeader>
+          <ModalHeader toggle={this.addHostToggle}> <p className="text-primary"> Edit Information for {this.state.current_pairing.event_name} </p> </ModalHeader>
           <ModalBody>
           <Form id="hostSignupForm">
           <Row>
@@ -237,7 +339,7 @@ class eventListHost extends React.Component {
           First Name
           </Col>
           <Col>
-          <Input type="text" name="firstname" id="firstname"/>  
+          <Input type="text" name="firstname" id="firstname" defaultValue={this.state.current_pairing.host_first_name}/ >  
           </Col>
           </Row>
           <br />
@@ -246,7 +348,7 @@ class eventListHost extends React.Component {
           Last Name
           </Col>
           <Col>
-          <Input type="text" name="lastname" id="lastname"/>  
+          <Input type="text" name="lastname" id="lastname" defaultValue={this.state.current_pairing.host_last_name}/>  
           </Col>
           </Row>
           <br />
@@ -255,15 +357,16 @@ class eventListHost extends React.Component {
           Room Number 
           </Col>
           <Col>
-          <Input type="text" name="roomnum" id="roomnum"/>
+          <Input type="text" name="roomnum" id="roomnum" defaultValue={this.state.current_pairing.host_room_num}/>
           </Col>
           </Row>
+          <br />
           <Row>
           <Col>
           Cellphone Number: 
           </Col>
           <Col>
-          <Input type="text" name="cellnum" id="cellnum"/>
+          <Input type="text" name="cellnum" id="cellnum" defaultValue={this.state.current_pairing.host_cellphone}/>
           </Col>
           </Row>
           <br />
@@ -272,7 +375,7 @@ class eventListHost extends React.Component {
           Max Number of Visitors: 
           </Col>
           <Col>
-          <Input type="text" name="maxvisitors" id="maxvisitors"/>
+          <Input type="text" name="maxvisitors" id="maxvisitors" defaultValue={this.state.current_pairing.max_visitors}/>
           </Col>
           </Row>
           <br />
@@ -315,45 +418,41 @@ class eventListHost extends React.Component {
           </Form>  
           </ModalBody>
           <ModalFooter>
-            <Button color="primary" onClick={this.addHost}> Sign Up</Button>{' '}
+            <Button color="primary" onClick={this.addHost}> Update Info </Button>{' '}
             <Button color="secondary" onClick={this.addHostToggle}>Cancel</Button>
           </ModalFooter>
       </Modal>
 
-      {/*<CardDeck>
-        {this.props.events.map((value, index) => {
-          let jsonVal = JSON.parse(value)
-          return <div key={index}> 
-                 <Card>
-                 <p key="0"> Event Id: {jsonVal['event_id']} </p> 
-                 <p key="1"> Your gender: {jsonVal['host_gender']} </p>
-                 <p key="2"> Same Gender Room: {String(jsonVal['same_gender_room'])} </p>
-                 <p key="3"> Maximum Visitors: {jsonVal['max_visitors']} </p>
-                 <p key="4"> First Name: {jsonVal['host_first_name']} </p>
-                 <p key="5"> Last Name: {jsonVal['host_last_name']} </p>  
-                 <p key="6"> Cellphone: {jsonVal['host_cellphone']} </p>    
-                 <br />         
-                  <Button key="8" value={jsonVal['event_id']} onClick={this.addHostToggle}> Edit Information </Button> 
-                 <Button color="danger" key="9" value={jsonVal['event_id']}> Drop Event </Button>
-                 
-                 </Card> 
-                 </div>
-  
-        })}
-        </CardDeck> */}
+       <Modal key="2" isOpen={this.state.dropEventModal} toggle={this.dropEventToggle} className={this.props.className}>
+          <ModalHeader toggle={this.dropEventToggle}> <p className="text-danger"> Drop {this.state.current_pairing.event_name} </p> </ModalHeader>
+          <ModalBody>
+
+          Are you sure you want to drop out of this event?
+
+          </ModalBody>
+
+          <ModalFooter>
+            <Button color="danger" onClick={this.dropEvent}> Drop Event</Button>{' '}
+            <Button color="secondary" onClick={this.dropEventToggle}>Cancel</Button>
+          </ModalFooter>
+        </Modal>
+
+     
          <Table dark>
          <tbody>
          
          {this.props.events.map((value, index) => {
-          let jsonVal = JSON.parse(value)
+          //console.log("value" + value);
+          let jsonVal = value;
+          //let jsonVal = value;
           let tableHead = "";
           if (index == 0)
           {
             tableHead = "<thead> <tr> <th> Name </th> <th> your gender </th>"
           }
-          return <div key={index}> 
-                 <tr>
-                 <th key="0"> Event Id: {jsonVal['event_id']} </th> 
+          return <div>
+                 <tr key={index}>
+                 <th key="0"> Event Name: {jsonVal['event_name']} </th> 
                  <th key="1"> Your gender: {jsonVal['host_gender']} </th>
                  <th key="2"> Same Gender Room: {(jsonVal['same_gender_room'])} </th>
                  <th key="3"> Maximum Visitors: {jsonVal['max_visitors']} </th>
@@ -361,15 +460,16 @@ class eventListHost extends React.Component {
                  <th key="5"> Last Name: {jsonVal['host_last_name']} </th>  
                  <th key="6"> Cellphone: {jsonVal['host_cellphone']} </th>    
                  <br />         
-                  <th> <Button color="light" key="8" value={jsonVal['event_id']} onClick={this.addHostToggle}> Edit Information </Button> </th>
-                 <th> <Button color="danger" key="9" value={jsonVal['event_id']}> Drop Event </Button> </th>
+                  <th> <Button color="light" key="8" value={jsonVal['pairing_id']} onClick={this.addHostToggle}> Edit Information </Button> </th>
+                 <th> <Button color="danger" key="9" value={jsonVal['pairing_id']} onClick={this.dropEventToggle}> Drop Event </Button> </th>
                  
                  </tr> 
                  </div>
+                 
   
-        })}
+        })} 
          </tbody>
-         </Table>
+         </Table> 
     </div>
 <style jsx>{`
       .hero {

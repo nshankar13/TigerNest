@@ -24,6 +24,8 @@ const NavHost = () => (
   //const history = createMemoryHistory();
 
   <Navbar color="light" light expand="md">
+    <link href="https://fonts.googleapis.com/css?family=Maven+Pro" rel="stylesheet" />
+
     <ul>
       <li>
         <Link href="/home">
@@ -58,8 +60,7 @@ const NavHost = () => (
         //background-color: #FFFFFF;
         background-size: cover;
 
-        font-family: -apple-system, BlinkMacSystemFont, Avenir Next, Avenir,
-          Helvetica, sans-serif;
+        font-family: font-family: font-family: 'Maven Pro', sans-serif;
       }
       nav {
         text-align: center;

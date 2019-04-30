@@ -19,11 +19,15 @@ import { Navbar } from 'reactstrap';
   return link
 }) */
 
+var divStyle = {
+  color: 'seagreen'
+}
 
-const Nav = () => (
+const NavBar = () => (
   //const history = createMemoryHistory();
 
   <Navbar color="light" light expand="md">
+  <link href="https://fonts.googleapis.com/css?family=Maven+Pro" rel="stylesheet" />
     <ul>
       <li>
         <Link href="/home">
@@ -49,12 +53,12 @@ const Nav = () => (
     <style jsx>{`
       :global(body) {
         margin: 0;
+        //background: url("/static/candyBackground.jpg");
         background: url("/static/background.jpg");
         //background-color: #FFFFFF;
         background-size: cover;
 
-        font-family: -apple-system, BlinkMacSystemFont, Avenir Next, Avenir,
-          Helvetica, sans-serif;
+        font-family: font-family: 'Maven Pro', sans-serif;
       }
       nav {
         text-align: center;
@@ -95,4 +99,4 @@ const Nav = () => (
   </div>
 )*/
 
-export default Nav
+export default NavBar

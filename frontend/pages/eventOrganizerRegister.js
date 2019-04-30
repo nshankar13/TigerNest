@@ -113,9 +113,6 @@ class EventOrganizerRegister extends React.Component {
           Email 
           </Col>
           <Col>
-          <Input type="text" name="email" id="email"/>  
-          </Col>
-          <Col>
           Registration Code
           </Col>
           <Col>

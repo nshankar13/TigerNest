@@ -56,15 +56,19 @@ var divStyle3 = {
 
 
 
+
 const Home = () => (
   <div>
+
     <Head title="Home" />
+    <link href="https://fonts.googleapis.com/css?family=Maven+Pro" rel="stylesheet" />
  
  
     <div className="hero">
-      <h1 className="title" style={divStyle}>Welcome to TigerNest!</h1>
+      <h1 className="title" style={divStyle}>WELCOME TO <br /> TIGERNEST!</h1>
       <p className="description" style={divStyle}>
-        Matching Princeton students with visiting students.
+      <br />
+        Matching Princeton students with visiting guests
       </p>
       <br />
       <center style={divStyle}> I am a.... </center>
@@ -94,13 +98,13 @@ const Home = () => (
       </Link> 
       <Link href="/hostAllEvents">
           <a className="card">
-            <h3 style={divStyle3}>Hosts 🛏️</h3>
+            <h3 style={divStyle3}>Host 🛏️</h3>
             <p style={divStyle3}>Host a visiting student!</p>
           </a>
       </Link>
         <Link href="https://open.segment.com/create-next-app">
           <a className="card">
-            <h3 style={divStyle3}>Visitors 💼</h3>
+            <h3 style={divStyle3}>Visitor 💼</h3>
             <p style={divStyle3}>
               Find a place to stay!
               </p>
@@ -119,13 +123,13 @@ const Home = () => (
     <style jsx>{`
       :global(body) {
         margin: 0;
+        //background: url("/static/candyBackground.jpg");
         background: url("/static/background.jpg");
         //backbround-color: #FFFFFF;
-        //background-color: #4A4B4B;
+        //background-color: #1A9788;
         background-size: cover;
 
-        font-family: -apple-system, BlinkMacSystemFont, Avenir Next, Avenir,
-          Helvetica, sans-serif;
+        font-family: 'Maven Pro', sans-serif;
       }
       .hero {
         width: 100%;

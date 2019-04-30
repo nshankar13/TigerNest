@@ -7,6 +7,7 @@ import fetch from 'isomorphic-unfetch'
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Row, Col, Input, Form, FormText, CustomInput } from 'reactstrap';
 import { Card, CardImg, CardHeader, CardText, CardBody, CardTitle, CardSubtitle, CardDeck, FormGroup, Label} from 'reactstrap';
 import ReactFileReader from 'react-file-reader';
+import Cookies from 'js-cookie';
 
 import Router from 'next/router'
 
@@ -15,6 +16,13 @@ var divStyle = {
   color: 'white'
   //color: 'dodgerblue'
 };
+
+var divStyle1 = {
+  color: 'black'
+  //color: 'dodgerblue'
+};
+
+const axios = require('axios');
 
 class eventListHost extends React.Component {
   constructor(props, context){
@@ -103,18 +111,19 @@ class eventListHost extends React.Component {
     //console.log(name)
     let genderVal = document.forms["hostSignupForm"]["radio1"].value;
     let same_gender = genderVal === "Yes" ? true : false;
-    console.log(this.state.visitorEmails)
+    //console.log(this.state.visitorEmails)
     let pairingInfo = {
       "host_first_name": document.forms["hostSignupForm"]["firstname"].value,
       "host_last_name": document.forms["hostSignupForm"]["lastname"].value,
-      "host_id": 1,
+      "host_netid": String(Cookies.get('netid')),
       "host_gender": document.forms["hostSignupForm"]["radio2"].value,
       "same_gender_room": same_gender,
       "host_room_num": document.forms["hostSignupForm"]["roomnum"].value,
       "max_visitors": document.forms["hostSignupForm"]["maxvisitors"].value,
       "visitor_list": {},
       "host_cellphone": document.forms["hostSignupForm"]["cellnum"].value,
-      "event_id": this.state.current_event.event_id
+      "event_id": this.state.current_event.event_id,
+      "event_name": this.state.current_event.name
       };
 
     const res = await fetch('http://localhost:5000/pairing', {
@@ -149,7 +158,39 @@ class eventListHost extends React.Component {
     if (!this.state.modal)
       this.setState(state => ({ visitorEmails: ""}));
   }
-  static async getInitialProps(){
+  static async getInitialProps({req}){
+
+    //const res1 = await fetch('http://localhost:5000/')
+
+    const res1 = await axios({
+        url: 'http://localhost:3000/netid',
+        // manually copy cookie on server,
+        // let browser handle it automatically on client
+        headers: req ? {cookie: req.headers.cookie} : undefined,
+      });
+    const res2 = await fetch('http://localhost:5000/pairing/events_for_host/' + res1.data.netid, {
+            method: "GET",
+            headers: {
+                "Content-Type": "text/plain",
+                "Access-Control-Allow-Origin": "*"
+            }})
+
+    var data2 = await res2.json()
+      data2 = JSON.stringify(data2)
+
+     data2 = JSON.parse(data2)
+
+     let eventsHost = []
+
+     for(let i = 0; i < data2.length; i++)
+     {
+      eventsHost.push(data2[i]['event_id'])
+     }
+
+
+    //console.log(res1.data)
+
+     
         const res = await fetch('http://localhost:5000/event/sort_date', {
             method: "GET",
             headers: {
@@ -161,6 +202,13 @@ class eventListHost extends React.Component {
 
      data = JSON.parse(data)
      //console.log(data)
+
+     /* 
+        Get all the events that the host is in, put this in a table. 
+        Make sure that they do not sign up twice for the same event. 
+        Events that they already signed up for should have a "drop event" option.
+
+     */
 
      let descriptions = []
      let end_dates = []
@@ -176,18 +224,10 @@ class eventListHost extends React.Component {
 
      for (let i = 0; i < data.length; i++)
      {
-      /*descriptions.push(data[i]['description']);
-      end_dates.push(data[i]['end_dates'])
-      end_times.push(data[i]['end_times'])
-      expected_number_visitors.push(data[i]['expected_number_visitors'])
-      hosting_organizations.push(data[i]['hosting_organizations'])
-      locations.push(data[i]['locations'])
-      names.push(data[i]['names'])
-      number_of_hosts.push(data[i]['number_of_hosts'])
-      start_dates.push(data[i]['start_date'])
-      start_times.push(data[i]['start_time'])*/
-      events.push(JSON.stringify(data[i]))
+      if (!eventsHost.includes(data[i]['event_id']) && (data[i]['event_stage'] == 0 || data[i]['event_stage'] == 1))
+        events.push(JSON.stringify(data[i]));
      }
+
      return {
       descriptions: descriptions,
       end_dates: end_dates,
@@ -199,7 +239,8 @@ class eventListHost extends React.Component {
       number_of_hosts: number_of_hosts,
       start_dates: start_dates,
       start_times: start_times,
-      events:events
+      events:events,
+      data: res1.data
      }
 
       /*return {
@@ -218,6 +259,7 @@ class eventListHost extends React.Component {
 
   }
   render(props){ 
+    //console.log(this.props.data);
     return(
   <div>
   <Head title="Host Events" />
@@ -257,6 +299,7 @@ class eventListHost extends React.Component {
           <Input type="text" name="roomnum" id="roomnum"/>
           </Col>
           </Row>
+          <br />
           <Row>
           <Col>
           Cellphone Number: 
@@ -319,12 +362,14 @@ class eventListHost extends React.Component {
           </ModalFooter>
       </Modal>
 
+    
+
       <CardDeck>
         {this.props.events.map((value, index) => {
           let jsonVal = JSON.parse(value)
           return <div key={index}> 
-          <Card className="card text-white bg-dark mb-3" key={index}> 
-                  <CardHeader key="0"> <center> {jsonVal['name']} </center> </CardHeader>
+          <Card className="card bg-light mb-3" key={index}> 
+                  <CardHeader key="0"> <center> <a style={divStyle1}> {jsonVal['name']} </a> </center> </CardHeader>
                 <img width="350" height="170" src="/static/conference.jpg" alt="Card image cap" />
                  
                 {/*  <p key="1"> Hosting Organization: {jsonVal['hosting_organization']} </p>
@@ -333,9 +378,9 @@ class eventListHost extends React.Component {
                  <p key="4"> End Date: {jsonVal['end_date']} </p>
                  <p key="5"> End Time: {jsonVal['end_time']} </p>  
                  <p key="6"> Location: {jsonVal['location']} </p>    */}
-                 <p key="2"> <center> {jsonVal['start_date']} to {jsonVal['end_date']} </center> </p>
-                 <p key="3"> <center> {jsonVal['location']} </center> </p>
-                 <p key="4"> <center> {jsonVal['start_time']} </center> </p>              
+                 <center>  <p key="2"> {jsonVal['start_date']} to {jsonVal['end_date']}  </p> </center>
+                 <center>  <p key="3"> {jsonVal['location']}  </p> </center>
+                <center> <p key="4">  {jsonVal['start_time']}  </p> </center>        
                  <Button color="primary" key="8" value={jsonVal['event_id']} onClick={this.addHostToggle}> Sign up to host </Button> 
                  </Card> 
                  </div>
