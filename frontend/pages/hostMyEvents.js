@@ -11,7 +11,7 @@ import Cookies from 'js-cookie';
 
 import Router from 'next/router'
 
-
+const database_url = "http://localhost:5000"
 var divStyle = {
   color: 'white'
   //color: 'dodgerblue'
@@ -29,6 +29,8 @@ class eventListHost extends React.Component {
       visitorEmails: [],
       current_pairing: -1,
       eventList: [],
+      viewDetailsModal: false,
+      visitor_list: [],
       current_event: { 
         name:"",
         start_time:"",
@@ -46,6 +48,48 @@ class eventListHost extends React.Component {
     this.dropEventToggle = this.dropEventToggle.bind(this);
     this.dropEvent = this.dropEvent.bind(this);
     this.filterEvents = this.filterEvents.bind(this);
+    this.viewDetailsToggle = this.viewDetailsToggle.bind(this);
+  }
+  async viewDetailsToggle(){
+    if (!this.state.viewDetailsModal)
+    {
+      let val = event.target.value;
+    
+      const res = await fetch(database_url + '/visitor_pairing/all_hosts/' + val, {
+           method: "GET",
+           headers: {
+               "Content-Type": "text/plain",                
+               "Access-Control-Allow-Origin": "*"
+      }})
+
+      var data = await res.json()
+
+      let visitornames = []
+      
+      for(let i = 0; i < data.length; i++)
+      {
+        let visitor_id = data[i]['visitor_id']
+        let resVisitor = await fetch(database_url + '/visitor/' + visitor_id, {
+           method: "GET",
+           headers: {
+               "Content-Type": "text/plain",                
+               "Access-Control-Allow-Origin": "*"
+        }})
+        var dataVisitor = await resVisitor.json()
+        dataVisitor = JSON.stringify(dataVisitor)
+        dataVisitor = JSON.parse(dataVisitor)
+        visitornames.push(String(data[i]['name']))
+      }
+  
+      //data = JSON.stringify(data);
+      //data = JSON.parse(data);
+      this.setState(state => ({ visitor_list: visitornames}));
+    }
+
+    this.setState(prevState => ({
+      viewDetailsModal: !prevState.viewDetailsModal
+    }));
+
   }
   async editEvent(){
     console.log(this.state.visitorEmails)
@@ -437,6 +481,16 @@ class eventListHost extends React.Component {
           </ModalFooter>
         </Modal>
 
+         <Modal key="6" isOpen={this.state.viewDetailsModal} toggle={this.viewDetailsToggle} className={this.props.className}>
+          <ModalHeader toggle={this.viewDetailsToggle}> <p className="text-success"> View Your Visitor List! </p></ModalHeader>
+          <ModalBody>
+         {this.state.visitor_list}
+          </ModalBody>
+          <ModalFooter>
+            <Button color="secondary" onClick={this.viewDetailsToggle}>Exit</Button>
+          </ModalFooter>
+      </Modal>
+
      
          <Table dark>
          <tbody>
@@ -460,8 +514,9 @@ class eventListHost extends React.Component {
                  <th key="5"> Last Name: {jsonVal['host_last_name']} </th>  
                  <th key="6"> Cellphone: {jsonVal['host_cellphone']} </th>    
                  <br />         
-                  <th> <Button color="light" key="8" value={jsonVal['pairing_id']} onClick={this.addHostToggle}> Edit Information </Button> </th>
-                 <th> <Button color="danger" key="9" value={jsonVal['pairing_id']} onClick={this.dropEventToggle}> Drop Event </Button> </th>
+                  <th> <Button color="light" key="8" value={jsonVal['pairing_id']} onClick={this.addHostToggle} size="sm" > Edit Information </Button> </th>
+                 <th> <Button color="danger" key="9" value={jsonVal['pairing_id']} onClick={this.dropEventToggle} size="sm"> Drop Event </Button> </th>
+                 <th> <Button color="success" key="9" value={jsonVal['pairing_id']} onClick={this.viewDetailsToggle} size="sm"> View Visitors </Button> </th>
                  
                  </tr> 
                  </div>

@@ -2,9 +2,19 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from flask_cors import CORS
+from flask_bcrypt import Bcrypt
+from flask_jwt_extended import (
+    JWTManager, jwt_required, create_access_token,
+    get_jwt_identity
+)
 import os
 import hashlib
 import json
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+import time
+import jwt
+
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -13,7 +23,7 @@ CORS(app)
 #app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:p@localhost:5432/tigernest"
 app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://localhost/tigernest"
 
-
+bcrypt = Bcrypt(app)
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
@@ -441,23 +451,38 @@ def visitor_pairing_add():
 	db.session.commit()
 	return visitor_pairing_schema.jsonify(new_visitor_pairing)
 
+@app.route("/visitor_pairing/pairings_for_event/<event_id>", methods=["GET"])
+def visitor_pairing_get_for_events(event_id):
+	visitor_pairings = VisitorPairing.query.filter_by(event_id=event_id).all()
+	return visitor_pairings_schema.jsonify(visitor_pairings)
+
+@app.route("/visitor_pairing/guests_in_room/<pairing_id>", methods=["GET"])
+@jwt_required
+def visitor_pairing_get_guests_in_room(pairing_id):
+	count = VisitorPairing.query.filter_by(pairing_id=pairing_id).count()
+	return str(count)
+
+@app.route("/visitor_pairing/all_hosts/<pairing_id>", methods=["GET"])
+def visitor_pairing_get_hosts(pairing_id):
+	visitor_pairings = VisitorPairing.query.filter_by(pairing_id=pairing_id).all()
+	return visitor_pairings_schema.jsonify(visitor_pairings)
+
+
 #-----------------------------------------------------------------------------------------------------------------------------------------
 class Eligibilities(db.Model):
 	eligibility_id = db.Column(db.Integer, primary_key = True)
 	visitor_email = db.Column(db.Unicode, unique=False)
 	event_id = db.Column(db.Unicode, unique=False)
 	event_name = db.Column(db.Unicode, unique=False)
-	visitor_id = db.Column(db.Unicode, unique=False)
 
-	def __init__(self, visitor_email, event_id, event_name, visitor_id):
+	def __init__(self, visitor_email, event_id, event_name):
 		self.visitor_email = visitor_email
 		self.event_id = event_id
 		self.event_name = event_name
-		self.visitor_id = visitor_id
 
 class EligibilitySchema(ma.Schema):
 	class Meta:
-		fields=('eligility_id', 'visitor_email', 'event_id', 'event_name', 'visitor_id')
+		fields=('eligibility_id', 'visitor_email', 'event_id', 'event_name')
 
 
 eligibility_schema = EligibilitySchema()
@@ -468,11 +493,16 @@ def eligibility_add():
 	visitor_email = request.json['visitor_email']
 	event_id = request.json['event_id']
 	event_name = request.json['event_name']
-	visitor_id = request.json['visitor_id']
-	new_eligibility = Eligibility(visitor_email, event_id, event_name, visitor_id)
+	new_eligibility = Eligibilities(visitor_email, event_id, event_name)
 	db.session.add(new_eligibility)
 	db.session.commit()
 	return eligibility_schema.jsonify(new_eligibility)
+
+@app.route("/eligibility/<eligibility_id>", methods=["GET"])
+def eligibility_get(eligibility_id):
+	eligibility = Eligibilities.query.get(eligibility_id)
+	return eligibility_schema.jsonify(eligibility)
+
 
 
 @app.route("/eligibility/events_for_visitor/<visitor_email>", methods=["GET"])
@@ -483,52 +513,130 @@ def eligibility_events_for_visitor(visitor_email):
 
 #-----------------------------------------------------------------------------------------------------------------------------------------
 class Visitor(db.Model):
-	visitor_id = db.Column(db.Integer, primary_key = True)
+	id = db.Column(db.Integer, primary_key = True)
 	gender = db.Column(db.Unicode, unique = False)
-	firstname = db.Column(db.Unicode, unique = False)
-	lastname = db.Column(db.Unicode, unique = False)
+	name = db.Column(db.Unicode, unique = False)
 	same_gender = db.Column(db.Boolean, unique = False)
 	university = db.Column(db.Unicode, unique = False)
 	email = db.Column(db.Unicode, unique = True)
+	password = db.Column(db.Unicode, unique = False)
 
-	def __init__(self, gender, firstname, lastname, same_gender, university, email): 
+	def __init__(self, gender, name, same_gender, university, email, password): 
 		self.gender = gender
-		self.firstname = firstname
-		self.lastname = lastname 
+		self.name = name 
 		self.same_gender = same_gender
 		self.university = university 
 		self.email = email
+		self.password = bcrypt.generate_password_hash(password, 10).decode('utf8')
 
 class VisitorSchema(ma.Schema):
 	class Meta:
-		fields = ('visitor_id', 'gender', 'firstname', 'lastname', 'same_gender', 'university', 'email')
+		fields = ('id', 'gender', 'name', 'same_gender', 'university', 'email', 'password')
 
 visitor_schema = VisitorSchema()
 visitors_schema = VisitorSchema(many = True)
 
+# def authenticate(username, password):
+# 	visitor = Visitor.query.filter_by(email=username).first()
+# 	if visitor and bcrypt.check_password_hash(visitor.password, password):
+# 		return visitor
+
+# def identity(payload):
+# 	id = payload['identity']
+# 	return Visitor.query.filter_by(id=id).first()
+
+
 @app.route("/visitor", methods=["POST"])
 def visitor_add():
-	gender = ""
-	firstname = request.json['firstname']
-	lastname = request.json['lastname']
-	same_gender = None
-	university = ""
+	gender = request.json['gender']
+	name = request.json['name']
+	same_gender = request.json['same_gender']
+	university = request.json['university']
 	email = request.json['email']
+	password = request.json['password']
 
-	new_visitor = Visitor(gender, firstname, lastname, same_gender, university, email)
+	new_visitor = Visitor(gender, name, same_gender, university, email, password)
 	db.session.add(new_visitor)
-	db.session.commit()
-	return visitor_scheme.jsonify(new_visitor)
+	db.session.commit()	
+	identity = {
+		"id": new_visitor.id,
+		"email": new_visitor.email
+	}
+	access_token = create_access_token(identity=identity)
+	return jsonify(access_token=access_token), 200
+	
+@app.route("/visitor/login", methods=["POST"])
+def visitor_login():
+	email = request.json['email']
+	password = request.json['password']
+	visitor = Visitor.query.filter_by(email=email).first()
+
+	if visitor and bcrypt.check_password_hash(visitor.password, password):
+		identity = {
+			"id": visitor.id,
+			"email": visitor.email
+		}
+		access_token = create_access_token(identity=identity)
+		return jsonify(access_token=access_token), 200
+
+	return jsonify({"msg": "Bad username or password"}), 401
+
+@app.route("/visitor/reset", methods=["POST"])
+def visitor_reset():
+	email = request.json['email']
+	visitor = Visitor.query.filter_by(email=email).first()
+
+	if visitor:
+		# Expire token in 60 minutes
+		reset_token = jwt.encode({"id": visitor.id, "exp": int(time.time()) + 60*60}, app.config['JWT_SECRET_KEY'], algorithm='HS256')
+
+		message = Mail(
+			from_email='from_email@example.com',
+			to_emails=email,
+			subject='Password Reset',
+			html_content='http://localhost:3000/visitor/reset?resetToken='+reset_token.decode("utf-8") )
+		try:
+			sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+			response = sg.send(message)
+			print(response.status_code)
+			print(response.body)
+			print(response.headers)
+			return jsonify(), 200
+		except Exception as e:
+			print(e.message)
+			return jsonify(), 500
+	
+	return jsonify({"msg": "Invalid user"}), 401
+
+
+@app.route("/visitor/change-password", methods=["POST"])
+def visitor_change_password():
+	password = request.json['password']
+	reset_token = jwt.decode(request.json['resetToken'], app.config['JWT_SECRET_KEY'], algorithms=['HS256'])
+	visitor = Visitor.query.get(reset_token["id"])
+	print(visitor)
+
+	if visitor:
+		visitor.password = bcrypt.generate_password_hash(password, 10).decode('utf8')
+		db.session.commit()
+		return jsonify({"msg": "Updated"}), 200
+	
+	return jsonify({"msg": "Invalid user"}), 401
+
 
 @app.route("/visitor/<visitor_id>", methods=["GET"])
 def visitor_get(visitor_id):
 	visitor = Visitor.query.get(visitor_id)
 	return visitor_schema.jsonify(visitor)
 
-@app.route("/visitor/email/<email>", methods=["GET"])
-def visitor_getemail(email):
-	visitor = Visitor.query.get(email)
+
+@app.route('/visitor/data')
+@jwt_required
+def protected():
+	visitor_id = get_jwt_identity()['id']
+	visitor = Visitor.query.get(visitor_id)
 	return visitor_schema.jsonify(visitor)
+
 
 db.create_all()
 #---------------------------------------------------------------------------------------------------

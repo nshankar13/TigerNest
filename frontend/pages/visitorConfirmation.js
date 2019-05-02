@@ -18,7 +18,7 @@ var divStyle = {
   color: 'white'
 };
 
-class VisitorInterestForm extends React.Component {
+class VisitorConfirmation extends React.Component {
   constructor(props, context){
     super(props, context);
     this.state = {
@@ -115,7 +115,7 @@ class VisitorInterestForm extends React.Component {
         }, 
         body: JSON.stringify(organizer_info)
       });
-       Router.push("/visitorConfirmation");
+       //Router.push("/myEvents");
 
     }
     toggleDropdown() {
@@ -151,81 +151,27 @@ class VisitorInterestForm extends React.Component {
   <div>
   <Head title="Event Signup" />
     <div className="hero">
-    <link href="https://fonts.googleapis.com/css?family=Maven+Pro" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css?family=Maven+Pro" rel="stylesheet" />
+
 
       <div className="center">
 
-      <center> <h2 style={divStyle}> Event Interest Form </h2> </center>
+      <center> <h2 style={divStyle}> Signup Confirmation </h2> </center>
       <br />
-      <center> <p style={divStyle}> Fill out the following information to sign up for an event! </p> </center>
+      <center> <p style={divStyle}> </p> </center>
       <br />
 
-       <Form id="registerForm">
        <center>
-          <Row>
-          <Col>
-          <p style={divStyle}> First Name </p>
-          </Col>
-          <Col>
-          <Input type="text" name="firstname" id="firstname"/>  
-          </Col>
-          </Row>
-          <Row>
-          <Col>
-          <p style={divStyle}> Last Name  </p>
-          </Col>
-          <Col>
-          <Input type="text" name="lastname" id="lastname"/>  
-          </Col>
-          </Row>
-          <br />
-          <Row>
-          <Col> 
-          <p style={divStyle}> Which event will you be participating in? </p>
-          </Col>
-          <Col> 
-          <Dropdown isOpen={this.state.dropdownOpen} toggle={this.toggleDropdown}>
-            <DropdownToggle caret>
-              {this.state.current_event.name === "" ? <div> Select One </div> : <div> {this.state.current_event.name} </div>}
-            </DropdownToggle>
-            <DropdownMenu>
-              {this.props.events.map((value, index) => {
-                let jsonVal = value;
-                return <DropdownItem key={index} value={jsonVal['event_id']} onClick={this.setSelectedEvent}> {jsonVal['name']} </DropdownItem>
-              })}
-            </DropdownMenu>
-          </Dropdown>
-          {/*<Input type="select" id="eventname" name="eventname">
-              <option value="0">Select one</option>
-              {this.props.events.map((value, index) => {
-                let jsonVal = value;
-                return <Button key=index value={jsonVal['event_id']} onClick={this.setSelectedEvent}> {jsonVal['name']} </Button>
-              })}
 
-          </Input> */}
-          </Col>
-          </Row>
-          <Row>
-          <Col>
-          <p style={divStyle}> Email Address </p>
-          </Col>
-          <Col>
-          <Input type="text" name="email" id="email"/>  
-          </Col>
-          </Row>
-        
-          <br />
-          <center> <Button color="dark" onClick={this.addOrganizer}> Submit </Button> </center> </center>
-          <br />
-          {this.state.mismatchPassword ? <center> <p>Passwords do not match!</p> </center>: null}
-          {this.state.wrongRegCode ? <center> <p>Wrong registration code! Please contact Niranjan Shankar (nshankar@princeton.edu) or Michelle Yuen (mjyeun@princeton.edu) for the correct registration code.</p> </center>: null}
+       <p style={divStyle}> Thank you for signing up for an event! We look forward to having you back on our platform to sign up for rooms. </p>
 
-        </Form>
+       </center>
+          
         <br />
       </div>
 
     </div>
-     <style jsx>{`
+    <style jsx>{`
       :global(body) {
         margin: 0;
         //background: url("/static/candyBackground.jpg");
@@ -287,4 +233,4 @@ class VisitorInterestForm extends React.Component {
 }
 
 
-export default VisitorInterestForm
+export default VisitorConfirmation

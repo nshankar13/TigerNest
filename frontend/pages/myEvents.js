@@ -52,6 +52,8 @@ class eventList extends React.Component {
       visitorSignupModal: false,
       finalizePairingsModal: false,
       activeTab: '1',
+      viewDetailsModal: false,
+      pairings_for_event:[],
       current_event: { 
         name:"",
         start_time:"",
@@ -75,6 +77,7 @@ class eventList extends React.Component {
     this.visitorSignupToggle = this.visitorSignupToggle.bind(this);
     this.finalizePairings = this.finalizePairings.bind(this);
     this.finalizePairingsToggle = this.finalizePairingsToggle.bind(this);
+    this.viewDetailsToggle = this.viewDetailsToggle.bind(this);
     //this.verifyUser = this.verifyUser.bind(this);
   }
   toggleTab(tab){
@@ -104,6 +107,73 @@ class eventList extends React.Component {
         }
     });
     this.finalizePairingsToggle();
+
+  }
+  async viewDetailsToggle(){
+    if (!this.state.viewDetailsModal)
+    {
+      let val = event.target.value;
+    
+      const res = await fetch(database_url + '/event/' + val, {
+           method: "GET",
+           headers: {
+               "Content-Type": "text/plain",                
+               "Access-Control-Allow-Origin": "*"
+      }})
+      var data = await res.json()
+      data = JSON.stringify(data)
+      data = JSON.parse(data)
+      this.setState(state => ({ current_event: data}));
+      const res2 = await fetch(database_url + "/visitor_pairing/pairings_for_event/" + val, {
+        method: "GET",
+           headers: {
+               "Content-Type": "text/plain",                
+               "Access-Control-Allow-Origin": "*"
+
+      }})
+
+      data = await res2.json()
+      let pairingList = []
+      
+
+
+      for (let i = 0; i < data.length; i++)
+      {
+        let visitor_id = data[i]['visitor_id']
+        let pairing_id = data[i]['pairing_id']
+
+        let resVisitor = await fetch(database_url + '/visitor/' + visitor_id, {
+           method: "GET",
+           headers: {
+               "Content-Type": "text/plain",                
+               "Access-Control-Allow-Origin": "*"
+        }})
+        var dataVisitor = await resVisitor.json()
+        dataVisitor = JSON.stringify(dataVisitor)
+        dataVisitor = JSON.parse(dataVisitor)
+
+        let resHost = await fetch(database_url + '/pairing/' + pairing_id, {
+           method: "GET",
+           headers: {
+               "Content-Type": "text/plain",                
+               "Access-Control-Allow-Origin": "*"
+        }})
+        var dataHost = await resHost.json()
+        dataHost = JSON.stringify(dataHost)
+        dataHost = JSON.parse(dataHost)
+
+        let pairing_info = String("Host: " + dataHost['host_first_name'] + " " + dataHost['host_last_name'] + ", Visitor: " + dataVisitor['name'])
+        pairingList.push(pairing_info)
+      }
+  
+      //data = JSON.stringify(data);
+      //data = JSON.parse(data);
+      this.setState(state => ({ pairings_for_event: pairingList}));
+    }
+
+    this.setState(prevState => ({
+      viewDetailsModal: !prevState.viewDetailsModal
+    }));
 
   }
   async addOrganizer(){
@@ -682,6 +752,17 @@ class eventList extends React.Component {
             <Button color="secondary" onClick={this.finalizePairingsToggle}>Cancel</Button>
           </ModalFooter>
       </Modal>
+
+      <Modal key="6" isOpen={this.state.viewDetailsModal} toggle={this.viewDetailsToggle} className={this.props.className}>
+          <ModalHeader toggle={this.viewDetailsToggle}> <p className="text-success"> View Pairing Details for {this.state.current_event.name} </p></ModalHeader>
+          <ModalBody>
+         {this.state.pairings_for_event}
+          </ModalBody>
+          <ModalFooter>
+            <Button color="secondary" onClick={this.viewDetailsToggle}>Exit</Button>
+          </ModalFooter>
+      </Modal>
+
       <br />
 
        <Nav tabs>
@@ -719,7 +800,7 @@ class eventList extends React.Component {
           let jsonVal = JSON.parse(value)
           return <div key={index}> 
                  <Card className="card bg-light mb-3" key={index}> 
-                  <CardHeader key="0"> <center> <a style={divStyle2}> {jsonVal['name']} </a> </center> </CardHeader>
+                  <CardHeader key="0"> <center> <a style={divStyle2}> {jsonVal['name']} </a> </center>  </CardHeader>
                 <img width="380" height="170" src="/static/conference.jpg" alt="Card image cap" />
                  {/* <p key="1"> Hosting Organization: {jsonVal['hosting_organization']} </p>
                  <p key="2"> Start Date: {jsonVal['start_date']} </p>
@@ -776,7 +857,7 @@ class eventList extends React.Component {
           let jsonVal = JSON.parse(value)
           return <div key={index}> 
                  <Card className="card bg-light mb-3" key={index}> 
-                  <CardHeader key="0"> <center> <a style={divStyle2}> {jsonVal['name']} </a> </center> </CardHeader>
+                  <CardHeader key="0"> <center> <a style={divStyle2}> {jsonVal['name']} </a> </center>  </CardHeader>
                 <img width="365" height="170" src="/static/conference.jpg" alt="Card image cap" />
                  {/* <p key="1"> Hosting Organization: {jsonVal['hosting_organization']} </p>
                  <p key="2"> Start Date: {jsonVal['start_date']} </p>
@@ -788,7 +869,7 @@ class eventList extends React.Component {
                 <Row> 
                  <Col> <Button color="danger" key="10" size="sm" value={jsonVal['event_id']} onClick={this.deleteModalToggle}> Cancel Event </Button> </Col>
                  <Col> <Button color="primary" key="8" size="sm" value={jsonVal['event_id']} onClick={this.editModalToggle}> Edit Event </Button> </Col>
-                 <Col> <Button color="success" key="9" size="sm" value={jsonVal['event_id']}> View Matchings </Button> </Col> 
+                 <Col> <Button color="success" key="9" size="sm" value={jsonVal['event_id']} onClick={this.viewDetailsToggle}> View Matchings </Button> </Col> 
 
                  </Row>
 
