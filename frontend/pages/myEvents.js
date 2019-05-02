@@ -13,8 +13,10 @@ import EventOrganizerRegister from './eventOrganizerRegister'
 import Router from 'next/router'
 import Cookies from 'js-cookie';
 
-const database_url = "http://localhost:5000"
+//const database_url = "http://localhost:5000"
 const server_url = "http://localhost:3000"
+
+const database_url = "https://tigernest-backend.herokuapp.com"
 
 const axios = require('axios')
 

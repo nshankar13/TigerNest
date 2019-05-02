@@ -11,7 +11,9 @@ import Cookies from 'js-cookie';
 
 import Router from 'next/router'
 
-const database_url = "http://localhost:5000"
+//const database_url = "http://localhost:5000"
+const database_url = "https://tigernest-backend.herokuapp.com"
+
 var divStyle = {
   color: 'white'
   //color: 'dodgerblue'

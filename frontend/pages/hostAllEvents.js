@@ -11,6 +11,10 @@ import Cookies from 'js-cookie';
 
 import Router from 'next/router'
 
+const database_url = "https://tigernest-backend.herokuapp.com"
+const server_url = "https://tiger-nest2.herokuapp.com"
+
+
 
 var divStyle = {
   color: 'white'
@@ -163,12 +167,12 @@ class eventListHost extends React.Component {
     //const res1 = await fetch('http://localhost:5000/')
 
     const res1 = await axios({
-        url: 'http://localhost:3000/netid',
+        url: server_url + '/netid',
         // manually copy cookie on server,
         // let browser handle it automatically on client
         headers: req ? {cookie: req.headers.cookie} : undefined,
       });
-    const res2 = await fetch('http://localhost:5000/pairing/events_for_host/' + res1.data.netid, {
+    const res2 = await fetch(database_url + '/pairing/events_for_host/' + res1.data.netid, {
             method: "GET",
             headers: {
                 "Content-Type": "text/plain",
